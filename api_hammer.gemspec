@@ -22,5 +22,9 @@ Gem::Specification.new do |spec|
   spec.test_files    = `git ls-files -z test`.split("\x0")
   spec.require_paths = ['lib']
 
+  spec.add_dependency 'rack'
+  spec.add_dependency 'term-ansicolor'
+  spec.add_dependency 'json'
+  spec.add_dependency 'addressable'
   spec.add_development_dependency "rake"
 end
