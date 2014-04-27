@@ -26,8 +26,10 @@ module ApiHammer::Rails
   private
   # helper 
   def check_required_params_helper(check, subparams, errors, parents)
+    key = parents.join('#')
+    add_error = proc { |message| errors[key] << message unless errors[key].include?(message) }
     if subparams.nil?
-      errors[parents.join('#')] << "is required but was not provided"
+      add_error.call("is required but was not provided")
     elsif check
       case check
       when Array
@@ -38,17 +40,17 @@ module ApiHammer::Rails
             check_required_params_helper(subcheck, subparams[key], errors, parents + [key])
           end
         else
-          errors[parents.join('#')] << "must be a Hash"
+          add_error.call("must be a Hash")
         end
       when Class
         unless subparams.is_a?(check)
-          errors[parents.join('#')] << "must be a #{check.name}"
+          add_error.call("must be a #{check.name}")
         end
       else
         if subparams.is_a?(Hash)
           check_required_params_helper(nil, subparams[check], errors, parents + [check])
         else
-          errors[parents.join('#')] << "must be a Hash"
+          add_error.call("must be a Hash")
         end
       end
     end
