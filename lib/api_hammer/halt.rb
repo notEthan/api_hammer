@@ -19,11 +19,11 @@ module ApiHammer
 end
 
 module ApiHammer::Rails
-  unless const_defined?(:HALT_INCLUDED)
-    HALT_INCLUDED = proc do |controller_class|
+  unless instance_variables.any? { |iv| iv.to_s == '@halt_included' }
+    @halt_included = proc do |controller_class|
       controller_class.send(:rescue_from, ApiHammer::Halt, :with => :handle_halt)
     end
-    (@on_included ||= Set.new) << HALT_INCLUDED
+    (@on_included ||= Set.new) << @halt_included
   end
 
   # handle a raised ApiHammer::Halt or subclass and render it
