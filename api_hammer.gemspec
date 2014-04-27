@@ -26,5 +26,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'term-ansicolor'
   spec.add_dependency 'json'
   spec.add_dependency 'addressable'
-  spec.add_development_dependency "rake"
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'minitest-reporters'
 end
