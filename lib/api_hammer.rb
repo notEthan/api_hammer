@@ -1,2 +1,5 @@
 require 'api_hammer/version'
-require 'api_hammer/rails'
+
+module ApiHammer
+  autoload :Rails, 'api_hammer/rails'
+end
