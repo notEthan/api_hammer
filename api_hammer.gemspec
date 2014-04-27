@@ -19,7 +19,9 @@ Gem::Specification.new do |spec|
     'Rakefile.rb',
   ]
   spec.executables   = []
-  spec.test_files    = `git ls-files -z test`.split("\x0")
+  spec.test_files    = `git ls-files -z test`.split("\x0") + [
+    '.simplecov',
+  ]
   spec.require_paths = ['lib']
 
   spec.add_dependency 'rack'
