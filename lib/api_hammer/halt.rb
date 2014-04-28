@@ -38,20 +38,13 @@ module ApiHammer::Rails
     end
   end
 
+  # halt and render the given body 
   def halt(status, body, render_options = {})
     raise(ApiHammer::Halt.new(body.inspect, body, render_options.merge(:status => status)))
   end
 
-  # 
+  # halt and render the given errors in the body on the 'errors' key 
   def halt_error(status, errors, render_options = {})
     halt(status, {'errors' => errors}, render_options)
-  end
-
-  def halt_bad_request(errors, render_options = {})
-    halt_error(400, errors, render_options)
-  end
-
-  def halt_unprocessable_entity(errors, render_options = {})
-    halt_error(422, errors, render_options)
   end
 end
