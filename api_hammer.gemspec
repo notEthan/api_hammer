@@ -19,8 +19,18 @@ Gem::Specification.new do |spec|
     'Rakefile.rb',
   ]
   spec.executables   = []
-  spec.test_files    = `git ls-files -z test`.split("\x0")
+  spec.test_files    = `git ls-files -z test`.split("\x0") + [
+    '.simplecov',
+  ]
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency "rake"
+  spec.add_dependency 'rack'
+  spec.add_dependency 'term-ansicolor'
+  spec.add_dependency 'json'
+  spec.add_dependency 'addressable'
+  spec.add_development_dependency 'rake'
+  spec.add_development_dependency 'minitest'
+  spec.add_development_dependency 'minitest-reporters'
+  spec.add_development_dependency 'yard'
+  spec.add_development_dependency 'simplecov'
 end
