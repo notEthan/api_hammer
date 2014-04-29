@@ -8,9 +8,10 @@ Gem::Specification.new do |spec|
   spec.version       = ApiHammer::VERSION
   spec.authors       = ['Ethan']
   spec.email         = ['ethan@unth']
-  spec.summary       = ''
-  spec.description   = ''
-  spec.homepage      = ''
+  spec.summary       = 'an API tool'
+  spec.description   = 'actually a set of small API-related tools. very much unlike a hammer at all, which ' +
+    'is one large tool.'
+  spec.homepage      = 'https://github.com/notEthan/api_hammer'
   spec.license       = 'MIT'
 
   spec.files         = `git ls-files -z lib`.split("\x0") + [
