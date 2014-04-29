@@ -5,18 +5,18 @@ module ApiHammer::Rails
   #
   #     check_required_params(:id, :name)
   #
-  # - params[:id] must be present
-  # - params[:name] must be present
+  # - `params[:id]` must be present
+  # - `params[:name]` must be present
   #
   # less simple:
   #
   #     check_required_params(:id, :person => [:name, :height], :lucky_numbers => Array)
   #
-  # - params[:id] must be present
-  # - params[:person] must be present and be a hash
-  # - params[:person][:name] must be present
-  # - params[:person][:height] must be present
-  # - params[:lucky_numbers] must be present and be an array
+  # - `params[:id]` must be present
+  # - `params[:person]` must be present and be a hash
+  # - `params[:person][:name]` must be present
+  # - `params[:person][:height]` must be present
+  # - `params[:lucky_numbers]` must be present and be an array
   def check_required_params(*checks)
     errors = Hash.new { |h,k| h[k] = [] }
     check_required_params_helper(checks, params, errors, [])

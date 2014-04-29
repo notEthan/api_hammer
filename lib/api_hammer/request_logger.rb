@@ -8,6 +8,7 @@ module ApiHammer
   # mess of dashes and unlabeled numbers. 
   #
   # two lines:
+  #
   # - an info line, colored prettily to show a brief summary of the request and response
   # - a debug line of json to record all relevant info. this is a lot of stuff jammed into one line, not 
   #   pretty, but informative.

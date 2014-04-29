@@ -2,6 +2,7 @@ require 'addressable/uri'
 
 module ApiHammer
   # a RFC5988 Web Link 
+  #
   # https://tools.ietf.org/html/rfc5988
   class Weblink
     # Weblink::Error, base class for all errors of the Weblink class
@@ -80,6 +81,7 @@ module ApiHammer
       end
     end
 
+    # link attributes
     attr_reader :attributes
 
     # subscript returns an attribute of this Link, if defined, otherwise nil 
@@ -87,6 +89,7 @@ module ApiHammer
       @attributes[attribute_key]
     end
 
+    # link rel attribute
     def rel
       self['rel']
     end
