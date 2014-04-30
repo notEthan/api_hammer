@@ -66,5 +66,18 @@ describe ApiHammer::Weblink do
         assert_raises(ApiHammer::Weblink::ParseError) { ApiHammer::Weblink.parse_link_value(example) }
       end
     end
+
+    describe '#to_s' do
+      it 'makes a string' do
+        link = ApiHammer::Weblink.new('http://example.com', :rel => 'foo', :title => 'example', 'title*' => 'an example')
+        assert_equal(%q(<http://example.com>; rel="foo"; title="example"; title*="an example"), link.to_s)
+      end
+      it 'parses the string to the same values' do
+        link = ApiHammer::Weblink.new('http://example.com', 'rel' => 'foo', 'title' => 'example', 'title*' => 'an example')
+        parsed_link = ApiHammer::Weblink.parse_link_value(link.to_s).first
+        assert_equal(link.target_uri, parsed_link.target_uri)
+        assert_equal(link.attributes, parsed_link.attributes)
+      end
+    end
   end
 end
