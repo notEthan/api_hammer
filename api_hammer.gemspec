@@ -16,6 +16,7 @@ Gem::Specification.new do |spec|
 
   spec.files         = `git ls-files -z lib`.split("\x0") + [
     'LICENSE.txt',
+    'CHANGELOG.md',
     'README.md',
     'Rakefile.rb',
   ]
