@@ -49,50 +49,6 @@ module ApiHammer::Rails
   end
 
   module HaltMethods
-=begin
-# these methods are generated with the following script
-
-require 'nokogiri'
-require 'faraday'
-wpcodes = Nokogiri::HTML(Faraday.get('https://en.wikipedia.org/wiki/List_of_HTTP_status_codes').body)
-dts = wpcodes.css('dt')
-puts(dts.map do |dt|
-  if dt.text =~ /\A\s*(\d+)\s+([a-z0-9 \-']+)/i
-    status = $1.to_i
-    name = $2.strip
-    underscore = name.split(/[\s-]/).map{|word| word.downcase.gsub(/\W/, '') }.join('_')
-    if ([100..199, 490..499, 520..599].map(&:to_a).inject([], &:+) + [306, 420, 440, 449, 450]).include?(status)
-      # exclude these. 1xx isn't really a thing that makes sense at this level and the others are 
-      # nonstandard or particular particular web servers or such 
-      nil
-    elsif [204, 205, 304].include?(status)
-      # ones with no body
-%Q(
-  # halt with status #{status} #{name}
-  def halt_#{underscore}(render_options = {})
-    halt(#{status}, '', render_options)
-  end
-)
-    elsif (400..599).include?(status)
-      # body goes on an errors object
-%Q(
-  # halt with status #{status} #{name}, responding with the given errors object on the 'errors' key
-  def halt_#{underscore}(errors, render_options = {})
-    halt_error(#{status}, errors, render_options)
-  end
-)
-    else
-%Q(
-  # halt with status #{status} #{name}, responding with the given body object 
-  def halt_#{underscore}(body, render_options = {})
-    halt(#{status}, body, render_options)
-  end
-)
-    end
-  end
-end.compact.join)
-
-=end
     # halt with status 200 OK, responding with the given body object 
     def halt_ok(body, render_options = {})
       halt(200, body, render_options)
@@ -397,6 +353,50 @@ end.compact.join)
     def halt_network_authentication_required(errors, render_options = {})
       halt_error(511, errors, render_options)
     end
+=begin
+# the above methods are generated with the following script
+
+require 'nokogiri'
+require 'faraday'
+wpcodes = Nokogiri::HTML(Faraday.get('https://en.wikipedia.org/wiki/List_of_HTTP_status_codes').body)
+dts = wpcodes.css('dt')
+puts(dts.map do |dt|
+  if dt.text =~ /\A\s*(\d+)\s+([a-z0-9 \-']+)/i
+    status = $1.to_i
+    name = $2.strip
+    underscore = name.split(/[\s-]/).map{|word| word.downcase.gsub(/\W/, '') }.join('_')
+    if ([100..199, 490..499, 520..599].map(&:to_a).inject([], &:+) + [306, 420, 440, 449, 450]).include?(status)
+      # exclude these. 1xx isn't really a thing that makes sense at this level and the others are 
+      # nonstandard or particular particular web servers or such 
+      nil
+    elsif [204, 205, 304].include?(status)
+      # ones with no body
+%Q(
+  # halt with status #{status} #{name}
+  def halt_#{underscore}(render_options = {})
+    halt(#{status}, '', render_options)
+  end
+)
+    elsif (400..599).include?(status)
+      # body goes on an errors object
+%Q(
+  # halt with status #{status} #{name}, responding with the given errors object on the 'errors' key
+  def halt_#{underscore}(errors, render_options = {})
+    halt_error(#{status}, errors, render_options)
+  end
+)
+    else
+%Q(
+  # halt with status #{status} #{name}, responding with the given body object 
+  def halt_#{underscore}(body, render_options = {})
+    halt(#{status}, body, render_options)
+  end
+)
+    end
+  end
+end.compact.join)
+
+=end
   end
 
   include HaltMethods
