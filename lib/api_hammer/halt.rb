@@ -48,6 +48,26 @@ module ApiHammer::Rails
     halt(status, {'errors' => errors}, render_options)
   end
 
+  # attempts to find and return the given model (an ActiveRecord::Base subclass) with the given attributes. 
+  # halts with 404 (does not return) if that fails. options[:status] may specify a different status if that 
+  # is required.
+  #
+  # e.g.:
+  #
+  #     find_or_halt(User, :email => 'user@example.com')
+  #
+  def find_or_halt(model, find_attrs, options={})
+    options = {:status => 404}.merge(options)
+    record = model.where(find_attrs).first
+    unless record
+      attributes = find_attrs.map{|attr, val| "#{attr}: #{val}" }.join(", ")
+      model_name = model.table_name
+      model_name = model_name.singularize if model_name.respond_to?(:singularize)
+      halt_error(options[:status], {model_name => ["Unknown #{model_name}! #{attributes}"]})
+    end
+    record
+  end
+
   module HaltMethods
     # halt with status 200 OK, responding with the given body object 
     def halt_ok(body, render_options = {})

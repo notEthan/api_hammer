@@ -31,6 +31,31 @@ describe 'ApiHammer::Rails#halt' do
       assert_equal(422, haltex.render_options[:status])
     end
   end
+
+  describe 'find_or_halt' do
+    it 'returns a record if it exists' do
+      record = Object.new
+      model = Class.new do
+        (class << self; self; end).class_eval do
+          define_method(:where) { |attrs| [record] }
+          define_method(:table_name) { 'records' }
+        end
+      end
+      assert_equal record, FakeController.new.find_or_halt(model, {:id => 'anid'})
+    end
+    it 'it halts with 404 if not' do
+      record = Object.new
+      model = Class.new do
+        (class << self; self; end).class_eval do
+          define_method(:where) { |attrs| [] }
+          define_method(:table_name) { 'record' }
+        end
+      end
+      haltex = assert_raises(ApiHammer::Halt) { FakeController.new.find_or_halt(model, {:id => 'anid'}) }
+      assert_equal({'errors' => {'record' => ['Unknown record! id: anid']}}, haltex.body)
+      assert_equal(404, haltex.render_options[:status])
+    end
+  end
 end
 
 describe 'ApiHammer::Rails#handle_halt' do
