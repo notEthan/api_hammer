@@ -14,14 +14,14 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/notEthan/api_hammer'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z lib`.split("\x0") + [
+  spec.files         = `git ls-files -z lib bin`.split("\x0") + [
     '.yardopts',
     'LICENSE.txt',
     'CHANGELOG.md',
     'README.md',
     'Rakefile.rb',
   ]
-  spec.executables   = []
+  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = `git ls-files -z test`.split("\x0") + [
     '.simplecov',
   ]
@@ -31,6 +31,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'term-ansicolor'
   spec.add_dependency 'json'
   spec.add_dependency 'addressable'
+  spec.add_dependency 'coderay'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'minitest'
   spec.add_development_dependency 'minitest-reporters'
