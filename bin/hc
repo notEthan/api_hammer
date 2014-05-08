@@ -17,6 +17,8 @@ $options = {
   :headers => {},
 }
 
+$oauth = {}
+
 opt_parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] <verb> <url> [body]"
 
@@ -32,6 +34,22 @@ opt_parser = OptionParser.new do |opts|
   opts.on("-t", "--content-type CONTENT-TYPE", "Sets the Content-Type header of the request") do |v|
     $options[:headers]['Content-Type'.downcase] = v
   end
+  opts.on("--oauth-token TOKEN") do |token|
+    $oauth[:token] = token
+  end
+  opts.on("--oauth-token-secret TOKEN_SECRET") do |token_secret|
+    $oauth[:token_secret] = token_secret
+  end
+  opts.on("--oauth-consumer-key CONSUMER_KEY") do |consumer_key|
+    $oauth[:consumer_key] = consumer_key
+  end
+  opts.on("--oauth-consumer-secret CONSUMER_SECRET") do |consumer_secret|
+    $oauth[:consumer_secret] = consumer_secret
+  end
+  opts.on("--oauth-signature-method SIGNATURE_METHOD") do |signature_method|
+    $oauth[:signature_method] = signature_method
+  end
+
   opts.on("--no-ssl-verify", "Disables SSL verification - use cautiously!") do
     $options[:no_ssl_verify] = true
   end
@@ -174,6 +192,12 @@ if $options[:no_ssl_verify]
   faraday_options[:ssl] = {:verify => false}
 end
 connection = Faraday.new(faraday_options) do |builder|
+  if $oauth.any?
+    $oauth[:signature_method] ||= 'HMAC-SHA1'
+    require 'oauthenticator'
+    OAuthenticator::FaradaySigner
+    builder.use OAuthenticator::FaradaySigner, $oauth
+  end
   builder.use $options[:verbose] ? FaradayCurlVOutputter : FaradayOutputter
   builder.adapter Faraday.default_adapter
 end
