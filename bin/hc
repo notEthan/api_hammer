@@ -33,29 +33,29 @@ opt_parser = OptionParser.new do |opts|
   opts.on("--[no-]color", "Color the output (defaults to color if the output device is a TTY)") do |v|
     $options[:color] = v
   end
-  opts.on("-t", "--content-type CONTENT-TYPE", "Sets the Content-Type header of the request") do |v|
+  opts.on("-t", "--content-type CONTENT-TYPE", "Sets the Content-Type header of the request. This defaults to application/json if a body is included.") do |v|
     $options[:headers]['Content-Type'.downcase] = v
   end
-  opts.on("--oauth-token TOKEN") do |token|
+  opts.on("--oauth-token TOKEN", "OAuth 1.0 token") do |token|
     $oauth[:token] = token
   end
-  opts.on("--oauth-token-secret TOKEN_SECRET") do |token_secret|
+  opts.on("--oauth-token-secret TOKEN_SECRET", "OAuth 1.0 token secret") do |token_secret|
     $oauth[:token_secret] = token_secret
   end
-  opts.on("--oauth-consumer-key CONSUMER_KEY") do |consumer_key|
+  opts.on("--oauth-consumer-key CONSUMER_KEY", "OAuth 1.0 consumer key") do |consumer_key|
     $oauth[:consumer_key] = consumer_key
   end
-  opts.on("--oauth-consumer-secret CONSUMER_SECRET") do |consumer_secret|
+  opts.on("--oauth-consumer-secret CONSUMER_SECRET", "OAuth 1.0 consumer secret") do |consumer_secret|
     $oauth[:consumer_secret] = consumer_secret
   end
-  opts.on("--oauth-signature-method SIGNATURE_METHOD") do |signature_method|
+  opts.on("--oauth-signature-method SIGNATURE_METHOD", "OAuth 1.0 signature method - defaults to HMAC-SHA1") do |signature_method|
     $oauth[:signature_method] = signature_method
   end
 
   opts.on("--no-ssl-verify", "Disables SSL verification - use cautiously!") do
     $options[:no_ssl_verify] = true
   end
-  opts.on("-H", "--header HEADER", "Set a header") do |header|
+  opts.on("-H", "--header HEADER", %q(Set a header, e.g. -H "User-Agent: mycoolapp")) do |header|
     if header =~ /\A([^:]+):\s*(.*)\z/m # this could be more strictly conformant to rfc, but whatever
       field_name = $1
       field_value = $2
