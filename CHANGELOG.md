@@ -1,3 +1,12 @@
+# 0.2.0
+- Rails#unmunged_request_params
+- hc --pretty
+- hc default User-Agent set
+- hc doc improved, middlewares moved lib
+- RequestLogger improved
+- ApiHammer::RailsRequestLogging railtie
+- README improved marginally 
+
 # 0.1.0
 - Object#public_instance_exec
 - Obect#public_instance_eval
