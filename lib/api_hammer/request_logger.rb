@@ -23,10 +23,10 @@ module ApiHammer
       @request_body = env["rack.input"].read
       env["rack.input"].rewind
 
-      status, header, body = @app.call(env)
-      header = ::Rack::Utils::HeaderHash.new(header)
-      body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, header, began_at, body) }
-      [status, header, body_proxy]
+      status, headers, body = @app.call(env)
+      headers = ::Rack::Utils::HeaderHash.new(headers)
+      body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, headers, began_at, body) }
+      [status, headers, body_proxy]
     end
 
     def log(env, status, headers, began_at, body)
