@@ -63,6 +63,10 @@ module ApiHammer
           'remote_addr' => env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"],
           'User-Agent' => request.user_agent,
           'body' => @request_body,
+          # these come from the OAuthenticator gem/middleware 
+          'oauth.authenticated' => env['oauth.authenticated'],
+          'oauth.consumer_key' => env['oauth.consumer_key'],
+          'oauth.token' => env['oauth.token'],
         }.reject{|k,v| v.nil? },
         'response' => {
           'status' => status,
