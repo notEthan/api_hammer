@@ -18,11 +18,11 @@ end
 module ApiHammer
   class RequestLogSubscriber < ActiveSupport::LogSubscriber
     def process_action(event)
-      if event.payload[:request]
-        info = (event.payload[:request].env['request_logger.info'] ||= {})
+      if event.payload[:request_env]
+        info = (event.payload[:request_env]['request_logger.info'] ||= {})
       else
-        # if an exception occurs in the action, append_info_to_payload isn't called and event.payload[:request] 
-        # doesn't get set. fall back to use Thread.current.
+        # if an exception occurs in the action, append_info_to_payload isn't called and 
+        # event.payload[:request_env] doesn't get set. fall back to use Thread.current.
         info = (Thread.current['request_logger.info'] ||= {})
       end
       info.update(event.payload.slice(:controller, :action, :exception, :format, :formats, :view_runtime, :db_runtime))
@@ -35,7 +35,7 @@ end
 module AddRequestToPayload
   def append_info_to_payload(payload)
     super
-    payload[:request] = request
+    payload[:request_env] = request.env
   end
 end
 
