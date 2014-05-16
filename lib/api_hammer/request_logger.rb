@@ -69,6 +69,8 @@ module ApiHammer
           'oauth.authenticated' => env['oauth.authenticated'],
           'oauth.consumer_key' => env['oauth.consumer_key'],
           'oauth.token' => env['oauth.token'],
+          # airbrake
+          'airbrake.error_id' => env['airbrake.error_id'],
         }.reject{|k,v| v.nil? },
         'response' => {
           'status' => status,
