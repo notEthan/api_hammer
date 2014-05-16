@@ -23,6 +23,9 @@ module ApiHammer
       @request_body = env["rack.input"].read
       env["rack.input"].rewind
 
+      log_tags = Thread.current[:activesupport_tagged_logging_tags]
+      @log_tags = log_tags.dup if log_tags
+
       status, headers, body = @app.call(env)
       headers = ::Rack::Utils::HeaderHash.new(headers)
       body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, headers, began_at, body) }
@@ -53,7 +56,6 @@ module ApiHammer
         :white
       end
       status_s = bold(send(status_color, status.to_s))
-      @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
       data = {
         'request' => {
           'method' => request.request_method,
@@ -80,7 +82,16 @@ module ApiHammer
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}),
       }
       json_data = JSON.dump(data)
-      @logger.info json_data
+      dolog = proc do
+        @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
+        @logger.info json_data
+      end
+      # do the logging with tags that applied to the request if appropriate 
+      if @logger.respond_to?(:tagged) && @log_tags
+        @logger.tagged(@log_tags, &dolog)
+      else
+        dolog.call
+      end
     end
   end
 end
