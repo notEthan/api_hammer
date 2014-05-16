@@ -79,7 +79,6 @@ module ApiHammer
       }
       json_data = JSON.dump(data)
       @logger.debug json_data
-      $ZMQ_LOGGER.log json_data if defined?($ZMQ_LOGGER)
     end
   end
 end
