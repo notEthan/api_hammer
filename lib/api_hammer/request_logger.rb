@@ -78,7 +78,7 @@ module ApiHammer
         'duration' => now - began_at,
       }
       json_data = JSON.dump(data)
-      @logger.debug json_data
+      @logger.info json_data
     end
   end
 end
