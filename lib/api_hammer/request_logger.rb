@@ -77,7 +77,7 @@ module ApiHammer
         'processing' => {
           'began_at' => began_at.utc.to_i,
           'duration' => now - began_at,
-        }.merge(env['request_logger.info'] || {}),
+        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}),
       }
       json_data = JSON.dump(data)
       @logger.info json_data
