@@ -81,7 +81,8 @@ module ApiHammer
         'processing' => {
           'began_at' => began_at.utc.to_i,
           'duration' => now - began_at,
-        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}),
+          'activesupport_tagged_logging_tags' => @log_tags,
+        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
       }
       json_data = JSON.dump(data)
       dolog = proc do
