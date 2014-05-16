@@ -1,6 +1,20 @@
 require 'api_hammer'
 require 'active_support/log_subscriber'
 
+require 'rails/rack/log_tailer'
+# fix up this class to tail the log when the body is closed rather than when its own #call is done. 
+module Rails
+  module Rack
+    class LogTailer
+      def call(env)
+        status, headers, body = @app.call(env)
+        body_proxy = ::Rack::BodyProxy.new(body) { tail! }
+        [status, headers, body_proxy]
+      end
+    end
+  end
+end
+
 module ApiHammer
   class RequestLogSubscriber < ActiveSupport::LogSubscriber
     def process_action(event)
