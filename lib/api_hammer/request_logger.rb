@@ -74,8 +74,10 @@ module ApiHammer
           'Location' => response.location,
           'Content-Type' => response.content_type,
         }.reject{|k,v| v.nil? },
-        'began_at' => began_at.utc.to_i,
-        'duration' => now - began_at,
+        'processing' => {
+          'began_at' => began_at.utc.to_i,
+          'duration' => now - began_at,
+        }.merge(env['request_logger.info'] || {}),
       }
       json_data = JSON.dump(data)
       @logger.info json_data
