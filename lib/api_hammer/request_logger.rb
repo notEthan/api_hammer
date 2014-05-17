@@ -84,6 +84,7 @@ module ApiHammer
           'activesupport_tagged_logging_tags' => @log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
       }
+      Thread.current['request_logger.info'] = nil
       json_data = JSON.dump(data)
       dolog = proc do
         @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
