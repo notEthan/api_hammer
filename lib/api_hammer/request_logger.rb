@@ -23,10 +23,13 @@ module ApiHammer
       @request_body = env["rack.input"].read
       env["rack.input"].rewind
 
-      status, header, body = @app.call(env)
-      header = ::Rack::Utils::HeaderHash.new(header)
-      body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, header, began_at, body) }
-      [status, header, body_proxy]
+      log_tags = Thread.current[:activesupport_tagged_logging_tags]
+      @log_tags = log_tags.dup if log_tags
+
+      status, headers, body = @app.call(env)
+      headers = ::Rack::Utils::HeaderHash.new(headers)
+      body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, headers, began_at, body) }
+      [status, headers, body_proxy]
     end
 
     def log(env, status, headers, began_at, body)
@@ -53,7 +56,6 @@ module ApiHammer
         :white
       end
       status_s = bold(send(status_color, status.to_s))
-      @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
       data = {
         'request' => {
           'method' => request.request_method,
@@ -63,6 +65,12 @@ module ApiHammer
           'remote_addr' => env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"],
           'User-Agent' => request.user_agent,
           'body' => @request_body,
+          # these come from the OAuthenticator gem/middleware 
+          'oauth.authenticated' => env['oauth.authenticated'],
+          'oauth.consumer_key' => env['oauth.consumer_key'],
+          'oauth.token' => env['oauth.token'],
+          # airbrake
+          'airbrake.error_id' => env['airbrake.error_id'],
         }.reject{|k,v| v.nil? },
         'response' => {
           'status' => status,
@@ -70,12 +78,24 @@ module ApiHammer
           'Location' => response.location,
           'Content-Type' => response.content_type,
         }.reject{|k,v| v.nil? },
-        'began_at' => began_at.utc.to_i,
-        'duration' => now - began_at,
+        'processing' => {
+          'began_at' => began_at.utc.to_i,
+          'duration' => now - began_at,
+          'activesupport_tagged_logging_tags' => @log_tags,
+        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
       }
+      Thread.current['request_logger.info'] = nil
       json_data = JSON.dump(data)
-      @logger.debug json_data
-      $ZMQ_LOGGER.log json_data if defined?($ZMQ_LOGGER)
+      dolog = proc do
+        @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
+        @logger.info json_data
+      end
+      # do the logging with tags that applied to the request if appropriate 
+      if @logger.respond_to?(:tagged) && @log_tags
+        @logger.tagged(@log_tags, &dolog)
+      else
+        dolog.call
+      end
     end
   end
 end
