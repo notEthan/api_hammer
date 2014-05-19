@@ -51,7 +51,7 @@ class FaradayCurlVOutputter < FaradayOutputter
   def call(request_env)
     @outdev.puts "#{info('*')} #{info_body("connect to #{request_env[:url].host} on port #{request_env[:url].port}")}"
     @outdev.puts "#{info('*')} #{info_body("getting our SSL on")}" if request_env[:url].scheme=='https'
-    @outdev.puts "#{request('>')} #{request_verb(request_env[:method].to_s.upcase)} #{request_env[:url].request_uri} #{protocol('HTTP/1.1' || 'or something - TODO')}"
+    @outdev.puts "#{request('>')} #{request_verb(request_env[:method].to_s.upcase)} #{request_env[:url].request_uri} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")}"
     request_env[:request_headers].each do |k, v|
       @outdev.puts "#{request('>')} #{request_header(k)}#{request(':')} #{v}"
     end
