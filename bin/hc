@@ -9,6 +9,7 @@ require 'logger'
 require 'yaml'
 
 require 'api_hammer/faraday/outputter'
+require 'api_hammer/version'
 
 # OPTION PARSER 
 
@@ -98,6 +99,10 @@ if body && !headers['Content-Type'.downcase]
   # I'd rather not have a default content-type, but if none is set then the HTTP adapter sets this to 
   # application/x-www-form-urlencoded anyway. application/json is a better default for our purposes. 
   headers['Content-Type'.downcase] = 'application/json'
+end
+
+unless headers.keys.any? { |key| key.downcase == 'user-agent' }
+  headers['User-Agent'] = "ApiHammer #{ApiHammer::VERSION} hc"
 end
 
 # OH LOOK IT'S FINALLY ACTUALLY CONNECTING TO SOMETHING
