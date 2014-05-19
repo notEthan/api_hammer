@@ -19,6 +19,7 @@ require 'optparse'
 $options = {
   :verbose => true,
   :color => nil,
+  :pretty => nil,
   :no_ssl_verify => false,
   :headers => {},
 }
@@ -36,6 +37,9 @@ opt_parser = OptionParser.new do |opts|
   end
   opts.on("--[no-]color", "Color the output (defaults to color if the output device is a TTY)") do |v|
     $options[:color] = v
+  end
+  opts.on("--[no-]pretty", "Format the output prettily if supported. (JSON is supported.) defaults to true.") do |v|
+    $options[:pretty] = v
   end
   opts.on("-t", "--content-type CONTENT-TYPE", "Sets the Content-Type header of the request. This defaults to application/json if a body is included.") do |v|
     $options[:headers]['Content-Type'.downcase] = v

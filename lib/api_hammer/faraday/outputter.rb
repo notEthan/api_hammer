@@ -1,4 +1,5 @@
 require 'faraday'
+require 'rack'
 
 # outputs the response body to the given output device (defaulting to STDOUT) 
 class FaradayOutputter < Faraday::Middleware
@@ -56,7 +57,7 @@ class FaradayCurlVOutputter < FaradayOutputter
       @outdev.puts "#{request('>')} #{request_header(k)}#{request(':')} #{v}"
     end
     @outdev.puts "#{request_blankline('>')} "
-    request_body = color_body_by_content_type(request_env[:body], request_env[:request_headers]['Content-Type'])
+    request_body = alter_body_by_content_type(request_env[:body], request_env[:request_headers]['Content-Type'])
     (request_body || '').split("\n", -1).each do |line|
       @outdev.puts "#{request('>')} #{line}"
     end
@@ -66,11 +67,15 @@ class FaradayCurlVOutputter < FaradayOutputter
         @outdev.puts "#{response('<')} #{response_header(k)}#{response(':')} #{v}"
       end
       @outdev.puts "#{response_blankline  ('<')} "
-      response_body = color_body_by_content_type(response_env[:body], response_env[:response_headers]['Content-Type'])
+      response_body = alter_body_by_content_type(response_env[:body], response_env[:response_headers]['Content-Type'])
       (response_body || '').split("\n", -1).each do |line|
         @outdev.puts "#{response('<')} #{line}"
       end
     end
+  end
+
+  def pretty?
+    @options[:pretty].nil? ? true : @options[:pretty]
   end
 
   # whether to use color
@@ -102,13 +107,25 @@ class FaradayCurlVOutputter < FaradayOutputter
     :yaml => [],
   }
 
-  # takes a body and a content type; returns the body, with coloring (ansi colors for terminals)
-  # possibly added, if it's a recognized content type and #color? is true 
-  def color_body_by_content_type(body, content_type)
-    if body && color?
-      # kinda hacky way to get the media_type. faraday should supply this ...
-      require 'rack'
-      media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
+  # takes a body and a content type; returns the body, altered according to options.
+  #
+  # - with coloring (ansi colors for terminals) possibly added, if it's a recognized content type and 
+  #   #color? is true 
+  # - formatted prettily if #pretty? is true
+  def alter_body_by_content_type(body, content_type)
+    return body unless body.is_a?(String)
+    media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
+    if pretty?
+      case media_type
+      when 'application/json'
+        require 'json'
+        begin
+          body = JSON.pretty_generate(JSON.parse(body))
+        rescue JSON::ParserError
+        end
+      end
+    end
+    if color?
       coderay_scanner = CodeRayForMediaTypes.reject{|k,v| !v.any?{|type| type === media_type} }.keys.first
       if coderay_scanner
         require 'coderay'
