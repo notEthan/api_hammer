@@ -88,7 +88,8 @@ module ApiHammer
       Thread.current['request_logger.info'] = nil
       json_data = JSON.dump(data)
       dolog = proc do
-        @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)}"
+        now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
+        @logger.info "#{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)} @ #{intense_magenta(now_s)}"
         @logger.info json_data
       end
       # do the logging with tags that applied to the request if appropriate 
