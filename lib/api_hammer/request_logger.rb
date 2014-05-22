@@ -64,7 +64,6 @@ module ApiHammer
           'Content-Type' => request.content_type,
           'remote_addr' => env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"],
           'User-Agent' => request.user_agent,
-          'body' => @request_body,
           # these come from the OAuthenticator gem/middleware 
           'oauth.authenticated' => env['oauth.authenticated'],
           'oauth.consumer_key' => env['oauth.consumer_key'],
@@ -77,6 +76,8 @@ module ApiHammer
           'length' => headers['Content-Length'] || body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
           'Location' => response.location,
           'Content-Type' => response.content_type,
+          # only log response body if there was an error (either client or server) 
+          'body' => (400..599).include?(status.to_i) ? body.to_enum.to_a.join('') : nil
         }.reject{|k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_i,
