@@ -1,3 +1,6 @@
+# 0.2.1
+- small RequestLogger tweaks
+
 # 0.2.0
 - Rails#unmunged_request_params
 - hc --pretty
