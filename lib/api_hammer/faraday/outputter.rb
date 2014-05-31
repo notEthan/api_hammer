@@ -63,7 +63,7 @@ module ApiHammer
         @outdev.puts "#{request('>')} #{line}"
       end
       @app.call(request_env).on_complete do |response_env|
-        @outdev.puts "#{response('<')} #{protocol('HTTP/1.1' || 'or something - TODO')} #{response_status(response_env[:status].to_s)}"
+        @outdev.puts "#{response('<')} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")} #{response_status(response_env[:status].to_s)}"
         request_env[:response_headers].each do |k, v|
           @outdev.puts "#{response('<')} #{response_header(k)}#{response(':')} #{v}"
         end
