@@ -88,7 +88,7 @@ connection = Faraday.new(faraday_options) do |builder|
     OAuthenticator::FaradaySigner
     builder.use OAuthenticator::FaradaySigner, $oauth
   end
-  builder.use($options[:verbose] ? FaradayCurlVOutputter : FaradayOutputter, $options)
+  builder.use($options[:verbose] ? ApiHammer::FaradayCurlVOutputter : ApiHammer::FaradayOutputter, $options)
   builder.adapter Faraday.default_adapter
 end
 
