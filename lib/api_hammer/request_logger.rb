@@ -76,8 +76,6 @@ module ApiHammer
           'length' => headers['Content-Length'] || body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
           'Location' => response.location,
           'Content-Type' => response.content_type,
-          # only log response body if there was an error (either client or server) 
-          'body' => (400..599).include?(status.to_i) ? body.to_enum.to_a.join('') : nil
         }.reject{|k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_i,
@@ -85,6 +83,27 @@ module ApiHammer
           'activesupport_tagged_logging_tags' => @log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
       }
+      ids_from_body = proc do |body_string, content_type|
+        media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
+        if media_type == 'application/json'
+          body_object = JSON.parse(body_string) rescue nil
+        # TODO form encoded
+        end
+        if body_object.is_a?(Hash)
+          body_object.reject { |key, value| !(key =~ /\b(uu)?id\b/ && value.is_a?(String)) }
+        end
+      end
+      request_body_ids = ids_from_body.call(@request_body, request.content_type)
+      data['request']['body_ids'] = request_body_ids if request_body_ids && request_body_ids.any?
+      response_body_string = body.to_enum.to_a.join('')
+      if (400..599).include?(status.to_i)
+        # only log response body if there was an error (either client or server) 
+        data['response']['body'] = response_body_string
+      else
+        # otherwise, log id and uuid fields 
+        response_body_ids = ids_from_body.call(response_body_string, response.content_type)
+        data['response']['body_ids'] = response_body_ids if response_body_ids && response_body_ids.any?
+      end
       Thread.current['request_logger.info'] = nil
       json_data = JSON.dump(data)
       dolog = proc do
