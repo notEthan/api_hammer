@@ -24,7 +24,7 @@ module ApiHammer
       env["rack.input"].rewind
 
       log_tags = Thread.current[:activesupport_tagged_logging_tags]
-      @log_tags = log_tags.dup if log_tags
+      @log_tags = log_tags.dup if log_tags && log_tags.any?
 
       status, headers, body = @app.call(env)
       headers = ::Rack::Utils::HeaderHash.new(headers)
