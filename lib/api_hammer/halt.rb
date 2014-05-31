@@ -45,6 +45,16 @@ module ApiHammer::Rails
 
   # halt and render the given errors in the body on the 'errors' key 
   def halt_error(status, errors, render_options = {})
+    errors_as_json = errors.respond_to?(:as_json) ? errors.as_json : errors
+    unless errors_as_json.is_a?(Hash)
+      raise ArgumentError, "errors be an object representable in JSON as a Hash; got errors = #{errors.inspect}"
+    end
+    unless errors_as_json.keys.all? { |k| k.is_a?(String) || k.is_a?(Symbol) }
+      raise ArgumentError, "errors keys must all be string or symbol; got errors = #{errors.inspect}"
+    end
+    unless errors_as_json.values.all? { |v| v.is_a?(Array) && v.all? { |e| e.is_a?(String) } }
+      raise ArgumentError, "errors values must all be arrays of strings; got errors = #{errors.inspect}"
+    end
     halt(status, {'errors' => errors}, render_options)
   end
 
