@@ -1,3 +1,8 @@
+# 0.2.2
+- RequestLogger, in addition to logging response bodies on error, logs id/uuid fields from request body and 
+  response body if there's no error
+- support a logger instead of a device in FaradayOutputter
+
 # 0.2.1
 - small RequestLogger tweaks
 
