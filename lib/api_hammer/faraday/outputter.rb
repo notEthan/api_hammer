@@ -2,7 +2,7 @@ require 'faraday'
 require 'rack'
 
 module ApiHammer
-  # outputs the response body to the given output device (defaulting to STDOUT) 
+  # outputs the response body to the given logger or output device (defaulting to STDOUT) 
   class FaradayOutputter < Faraday::Middleware
     def initialize(app, options={})
       @app=app
@@ -12,8 +12,13 @@ module ApiHammer
 
     def call(request_env)
       @app.call(request_env).on_complete do |response_env|
-        @outdev.puts(response_env[:body] || '')
+        puts(response_env[:body] || '')
       end
+    end
+
+    def puts(str)
+      meth = @options[:logger] ? @options[:logger].method(:info) : (@options[:outdev] || STDOUT).method(:puts)
+      meth.call(str)
     end
   end
 
@@ -51,26 +56,26 @@ module ApiHammer
     color :response_blankline, :intense_green, :bold
 
     def call(request_env)
-      @outdev.puts "#{info('*')} #{info_body("connect to #{request_env[:url].host} on port #{request_env[:url].port}")}"
-      @outdev.puts "#{info('*')} #{info_body("getting our SSL on")}" if request_env[:url].scheme=='https'
-      @outdev.puts "#{request('>')} #{request_verb(request_env[:method].to_s.upcase)} #{request_env[:url].request_uri} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")}"
+      puts "#{info('*')} #{info_body("connect to #{request_env[:url].host} on port #{request_env[:url].port}")}"
+      puts "#{info('*')} #{info_body("getting our SSL on")}" if request_env[:url].scheme=='https'
+      puts "#{request('>')} #{request_verb(request_env[:method].to_s.upcase)} #{request_env[:url].request_uri} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")}"
       request_env[:request_headers].each do |k, v|
-        @outdev.puts "#{request('>')} #{request_header(k)}#{request(':')} #{v}"
+        puts "#{request('>')} #{request_header(k)}#{request(':')} #{v}"
       end
-      @outdev.puts "#{request_blankline('>')} "
+      puts "#{request_blankline('>')} "
       request_body = alter_body_by_content_type(request_env[:body], request_env[:request_headers]['Content-Type'])
       (request_body || '').split("\n", -1).each do |line|
-        @outdev.puts "#{request('>')} #{line}"
+        puts "#{request('>')} #{line}"
       end
       @app.call(request_env).on_complete do |response_env|
-        @outdev.puts "#{response('<')} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")} #{response_status(response_env[:status].to_s)}"
+        puts "#{response('<')} #{protocol("HTTP/#{Net::HTTP::HTTPVersion}")} #{response_status(response_env[:status].to_s)}"
         request_env[:response_headers].each do |k, v|
-          @outdev.puts "#{response('<')} #{response_header(k)}#{response(':')} #{v}"
+          puts "#{response('<')} #{response_header(k)}#{response(':')} #{v}"
         end
-        @outdev.puts "#{response_blankline  ('<')} "
+        puts "#{response_blankline  ('<')} "
         response_body = alter_body_by_content_type(response_env[:body], response_env[:response_headers]['Content-Type'])
         (response_body || '').split("\n", -1).each do |line|
-          @outdev.puts "#{response('<')} #{line}"
+          puts "#{response('<')} #{line}"
         end
       end
     end
@@ -79,9 +84,14 @@ module ApiHammer
       @options[:pretty].nil? ? true : @options[:pretty]
     end
 
-    # whether to use color
+    # whether to use color. if we're writing to a device, check if it's a tty; otherwise we should have a 
+    # logger and just assume color.
     def color?
-      @options[:color].nil? ? @outdev.tty? : @options[:color]
+      if @options[:color].nil?
+        @options[:outdev] ? @options[:outdev].tty? : true
+      else
+        @options[:color]
+      end
     end
 
     # a mapping for each registered CodeRay scanner to the Media Types which represent 
