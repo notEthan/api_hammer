@@ -32,7 +32,7 @@ module ApiHammer
           cache_key_prefix = [self.table_name, find_method_name]
 
           # redefine the method with caching, calling to super as appropriate 
-          (class << self; self; end).send(:define_method, find_method_name) do |*find_args, &block|
+          define_singleton_method(find_method_name) do |*find_args, &block|
             # the key is composed of the find arguments.
             # caching does not happen if there are more find arguments than find attributes (ie, there are other options or restrictions on the query)
             # caching does not happen if an argument isn't a string or number (e.g. find(:all), find([7, 17]))
