@@ -1,3 +1,4 @@
+module ApiHammer
   module ActiveRecord
     module FindWithCaching
       def self.included(klass)
@@ -20,7 +21,7 @@
           # determine find_attribute_names associated with the given find_method_name
           if find_method_name == :find
             find_attribute_names = [self.primary_key]
-          elsif (matcher=ActiveRecord::DynamicFinderMatch.match(find_method_name))
+          elsif (matcher=::ActiveRecord::DynamicFinderMatch.match(find_method_name))
             raise NotImplementedError if matcher.instantiator? # not implemented for find_or_create_by_* or find_or_initialize_by_*
             raise NotImplementedError unless [:first, :last].include?(matcher.finder) # not implemented for find_all_by_*
             find_attribute_names = matcher.attribute_names
@@ -37,7 +38,7 @@
             # caching does not happen if an argument isn't a string or number (e.g. find(:all), find([7, 17]))
             if !block && find_args.size == find_attribute_names.size && find_args.all?{|arg| arg.is_a?(String) || arg.is_a?(Numeric) }
               cache_key = (cache_key_prefix + find_args).join('/')
-              Rails.cache.fetch(cache_key) do
+              ::Rails.cache.fetch(cache_key) do
                 super(*find_args, &block)
               end
             else
@@ -54,9 +55,10 @@
       def flush_cache
         self.class.instance_variable_get(:@caches_to_flush).each do |cache_to_flush|
           key = (cache_to_flush[:cache_key_prefix] + cache_to_flush[:find_attribute_names].map{|attr_name| self[attr_name] }).join('/')
-          Rails.cache.delete(key)
+          ::Rails.cache.delete(key)
         end
         nil
       end
     end
   end
+end
