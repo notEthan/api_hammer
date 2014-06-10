@@ -21,6 +21,7 @@ class Album < ActiveRecord::Base
   include ApiHammer::ActiveRecord::FindWithCaching
   cache_finder(:find_by_title)
   cache_finder(:find)
+  cache_finder(:find_by_title_and_performer)
 end
 
 module Rails
@@ -32,10 +33,41 @@ module Rails
 end
 
 describe ApiHammer::ActiveRecord::FindWithCaching do
-  it('caches') do
+  after do
+    Album.destroy_all
+    Rails.cache.clear
+  end
+
+  it('caches #find by primary key') do
+    id = Album.create!(:title => 'x').id
+    key = "albums/find/#{id}"
+    assert !Rails.cache.read("albums/find_by_title/x")
+    assert !Rails.cache.read(key)
+    assert Album.find(id)
+    assert Rails.cache.read(key)
+  end
+
+  it('caches with one attribute') do
     Album.create!(:title => 'x')
     key = "albums/find_by_title/x"
-    assert !Rails.cache.read("albums/find_by_title/x")
+    assert !Rails.cache.read(key)
     assert Album.find_by_title('x')
+    assert Rails.cache.read(key)
+  end
+
+  it('does not cache with one attribute') do
+    Album.create!(:performer => 'x')
+    key = "albums/find_by_performer/x"
+    assert !Rails.cache.read(key)
+    assert Album.find_by_performer('x')
+    assert !Rails.cache.read(key)
+  end
+
+  it('caches with two attributes') do
+    Album.create!(:title => 'x', :performer => 'y')
+    key = "albums/find_by_title_and_performer/x/y"
+    assert !Rails.cache.read(key)
+    assert Album.find_by_title_and_performer('x', 'y')
+    assert Rails.cache.read(key)
   end
 end
