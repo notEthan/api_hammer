@@ -2,4 +2,5 @@
 
 gemfile:
   - Gemfile_ar_3
+  - Gemfile_ar_4
 script: rake test
