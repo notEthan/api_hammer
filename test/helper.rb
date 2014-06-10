@@ -1,5 +1,8 @@
 proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.call(File.expand_path('../lib', File.dirname(__FILE__)))
 
+require 'bundler'
+Bundler.setup
+
 require 'simplecov'
 
 # NO EXPECTATIONS 
