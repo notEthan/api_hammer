@@ -17,7 +17,7 @@ module ApiHammer
         # adds a after_update hook to clear the record from the cache.
         #
         # adds a method #flush_cache which may also be called to flush the cache. 
-        def def_find_with_caching(find_method_name)
+        def cache_finder(find_method_name)
           # determine find_attribute_names associated with the given find_method_name
           if find_method_name == :find
             find_attribute_names = [self.primary_key]
