@@ -54,7 +54,8 @@ module ApiHammer
       # clears this record from any caches in which it is stored 
       def flush_cache
         self.class.instance_variable_get(:@caches_to_flush).each do |cache_to_flush|
-          key = (cache_to_flush[:cache_key_prefix] + cache_to_flush[:find_attribute_names].map{|attr_name| self[attr_name] }).join('/')
+          attrs = cache_to_flush[:find_attribute_names].map{|attr_name| self.send(:attribute_was, attr_name) }
+          key = (cache_to_flush[:cache_key_prefix] + attrs).join('/')
           ::Rails.cache.delete(key)
         end
         nil
