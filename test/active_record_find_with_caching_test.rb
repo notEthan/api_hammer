@@ -70,4 +70,31 @@ describe ApiHammer::ActiveRecord::FindWithCaching do
     assert Album.find_by_title_and_performer('x', 'y')
     assert Rails.cache.read(key)
   end
+
+  it('flushes cache on save') do
+    album = Album.create!(:title => 'x', :performer => 'y')
+    key1 = "albums/find_by_title_and_performer/x/y"
+    assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
+    assert Album.find_by_title_and_performer('x', 'y'), Album.all.inspect
+    assert Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
+    key2 = "albums/find_by_title/x"
+    assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
+    assert Album.find_by_title('x'), Album.all.inspect
+    assert Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
+    album.update_attributes!(:performer => 'z')
+    assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
+    assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect    
+  end
+
+  it('will not try to cache initializer methods') do
+    assert_raises(ArgumentError) { Album.cache_finder :find_or_initialize_by_title }
+  end
+
+  it('will not try to cache finders for all') do
+    assert_raises(ArgumentError) { Album.cache_finder :find_all_by_title }
+  end
+
+  it('will not try to cache some random method not recognizeble as a finder') do
+    assert_raises(ArgumentError) { Album.cache_finder :hello }
+  end
 end
