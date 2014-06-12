@@ -22,8 +22,8 @@ module ApiHammer
           if find_method_name == :find
             find_attribute_names = [self.primary_key]
           elsif (matcher=::ActiveRecord::DynamicFinderMatch.match(find_method_name))
-            raise NotImplementedError if matcher.instantiator? # not implemented for find_or_create_by_* or find_or_initialize_by_*
-            raise NotImplementedError unless [:first, :last].include?(matcher.finder) # not implemented for find_all_by_*
+            raise ArgumentError if matcher.instantiator? # not implemented for find_or_create_by_* or find_or_initialize_by_*
+            raise ArgumentError unless [:first, :last].include?(matcher.finder) # not implemented for find_all_by_*
             find_attribute_names = matcher.attribute_names
           else
             raise ArgumentError, "cannot determine attributes for finder method #{find_method_name}"
