@@ -70,4 +70,13 @@ describe 'ActiveRecord::Base.cache_find_by' do
     Album.create!(:title => 'x', :performer => 'y')
     assert_caches("cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
   end
+
+  it('flushes cache on save') do
+    album = Album.create!(:title => 'x', :performer => 'y')
+    assert_caches(key1 = "cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
+    assert_caches(key2 = "cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
+    album.update_attributes!(:performer => 'z')
+    assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
+    assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
+  end
 end
