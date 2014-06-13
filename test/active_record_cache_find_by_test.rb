@@ -31,6 +31,20 @@ module Rails
 end
 
 describe 'ActiveRecord::Base.cache_find_by' do
+  def assert_caches(key)
+    assert !Rails.cache.read(key)
+    yield
+  ensure
+    assert Rails.cache.read(key)
+  end
+
+  def assert_not_caches(key)
+    assert !Rails.cache.read(key)
+    yield
+  ensure
+    assert !Rails.cache.read(key)
+  end
+
   it('caches') do
     Album.create!(:title => 'x')
     key = "cache_find_by/albums/title/x"
