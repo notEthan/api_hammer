@@ -13,40 +13,38 @@ module ActiveRecord
       end
     end
 
-    begin
-      def one_record_with_caching(can_cache = true)
-        actual_right = proc do |where_value|
-          if where_value.right.is_a?(Arel::Nodes::BindParam)
-            column, value = bind_values.detect { |(column, value)| column.name == where_value.left.name }
-            value
-          else
-            where_value.right
-          end
-        end
-        cache_find_by = klass.instance_eval { @cache_find_by }
-        can_cache &&= cache_find_by &&
-          !loaded? && # if it's loaded no need to hit cache 
-          where_values.all? { |wv| wv.is_a?(Arel::Nodes::Equality) } && # no inequality or that sort of thing 
-          cache_find_by.include?(where_values.map { |wv| wv.left.name }.sort) && # any of the set of where-values to cache match this relation 
-          where_values.map(&actual_right).all? { |r| r.is_a?(String) || r.is_a?(Numeric) } && # check all right side values are simple types, number or string 
-          offset_value.nil? &&
-          joins_values.blank? &&
-          order_values.blank? &&
-          includes_values.blank? &&
-          preload_values.blank? &&
-          select_values.blank? &&
-          group_values.blank?
-
-        if can_cache
-          cache_key_prefix = ['cache_find_by', table.name]
-          find_attributes = where_values.sort_by { | wv| wv.left.name }.map { |wv| [wv.left.name, actual_right.call(wv)] }.inject([], &:+)
-          cache_key = (cache_key_prefix + find_attributes).join('/')
-          ::Rails.cache.fetch(cache_key) do
-            yield
-          end
+    def one_record_with_caching(can_cache = true)
+      actual_right = proc do |where_value|
+        if where_value.right.is_a?(Arel::Nodes::BindParam)
+          column, value = bind_values.detect { |(column, value)| column.name == where_value.left.name }
+          value
         else
+          where_value.right
+        end
+      end
+      cache_find_by = klass.instance_eval { @cache_find_by }
+      can_cache &&= cache_find_by &&
+        !loaded? && # if it's loaded no need to hit cache 
+        where_values.all? { |wv| wv.is_a?(Arel::Nodes::Equality) } && # no inequality or that sort of thing 
+        cache_find_by.include?(where_values.map { |wv| wv.left.name }.sort) && # any of the set of where-values to cache match this relation 
+        where_values.map(&actual_right).all? { |r| r.is_a?(String) || r.is_a?(Numeric) } && # check all right side values are simple types, number or string 
+        offset_value.nil? &&
+        joins_values.blank? &&
+        order_values.blank? &&
+        includes_values.blank? &&
+        preload_values.blank? &&
+        select_values.blank? &&
+        group_values.blank?
+
+      if can_cache
+        cache_key_prefix = ['cache_find_by', table.name]
+        find_attributes = where_values.sort_by { | wv| wv.left.name }.map { |wv| [wv.left.name, actual_right.call(wv)] }.inject([], &:+)
+        cache_key = (cache_key_prefix + find_attributes).join('/')
+        ::Rails.cache.fetch(cache_key) do
           yield
         end
+      else
+        yield
       end
     end
   end
