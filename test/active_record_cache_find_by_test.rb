@@ -47,9 +47,6 @@ describe 'ActiveRecord::Base.cache_find_by' do
 
   it('caches') do
     Album.create!(:title => 'x')
-    key = "cache_find_by/albums/title/x"
-    assert !Rails.cache.read(key)
-    assert Album.find_by_title('x')
-    assert Rails.cache.read(key)
+    assert_caches("cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
   end
 end
