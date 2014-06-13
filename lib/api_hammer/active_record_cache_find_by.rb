@@ -1,8 +1,20 @@
 module ActiveRecord
   class Relation
-    unless method_defined?(:first_without_caching)
+    if !method_defined?(:first_without_caching)
       alias_method :first_without_caching, :first
       def first(*args)
+        one_record_with_caching(args.empty?) { first_without_caching(*args) }
+      end
+    end
+    if !method_defined?(:take_without_caching) && method_defined?(:take)
+      alias_method :take_without_caching, :take
+      def take(*args)
+        one_record_with_caching(args.empty?) { take_without_caching(*args) }
+      end
+    end
+
+    begin
+      def one_record_with_caching(can_cache = true)
         actual_right = proc do |where_value|
           if where_value.right.is_a?(Arel::Nodes::BindParam)
             column, value = bind_values.detect { |(column, value)| column.name == where_value.left.name }
@@ -12,8 +24,7 @@ module ActiveRecord
           end
         end
         cache_find_by = klass.instance_eval { @cache_find_by }
-        can_cache = cache_find_by &&
-          args.empty? && # no array result, only the actual first
+        can_cache &&= cache_find_by &&
           !loaded? && # if it's loaded no need to hit cache 
           where_values.all? { |wv| wv.is_a?(Arel::Nodes::Equality) } && # no inequality or that sort of thing 
           cache_find_by.include?(where_values.map { |wv| wv.left.name }.sort) && # any of the set of where-values to cache match this relation 
@@ -31,10 +42,10 @@ module ActiveRecord
           find_attributes = where_values.sort_by { | wv| wv.left.name }.map { |wv| [wv.left.name, actual_right.call(wv)] }.inject([], &:+)
           cache_key = (cache_key_prefix + find_attributes).join('/')
           ::Rails.cache.fetch(cache_key) do
-            first_without_caching(*args)
+            yield
           end
         else
-          first_without_caching(*args)
+          yield
         end
       end
     end
