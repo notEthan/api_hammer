@@ -56,19 +56,44 @@ describe 'ActiveRecord::Base.cache_find_by' do
     assert_caches("cache_find_by/albums/id/#{id}") { assert Album.find(id) }
   end
 
-  it('caches with one attribute') do
+  it('caches #find_by_id') do
+    id = Album.create!(:title => 'x').id
+    assert_caches("cache_find_by/albums/id/#{id}") { assert Album.find_by_id(id) }
+  end
+
+  it('caches #where.first with primary key') do
+    id = Album.create!(:title => 'x').id
+    assert_caches("cache_find_by/albums/id/#{id}") { assert Album.where(:id => id).first }
+  end
+
+  it('caches find_by_x with one attribute') do
     Album.create!(:title => 'x')
     assert_caches("cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
   end
 
-  it('does not cache with one attribute') do
+  it('caches where.first with one attribute') do
+    Album.create!(:title => 'x')
+    assert_caches("cache_find_by/albums/title/x") { assert Album.where(:title => 'x').first }
+  end
+
+  it('does not cache find_by_x with one attribute') do
     Album.create!(:performer => 'x')
     assert_not_caches("cache_find_by/albums/performer/x") { assert Album.find_by_performer('x') }
   end
 
-  it('caches with two attributes') do
+  it('does not cache where.first with one attribute') do
+    Album.create!(:performer => 'x')
+    assert_not_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first }
+  end
+
+  it('caches find_by_x with two attributes') do
     Album.create!(:title => 'x', :performer => 'y')
     assert_caches("cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
+  end
+
+  it('caches where.first with two attributes') do
+    Album.create!(:title => 'x', :performer => 'y')
+    assert_caches("cache_find_by/albums/performer/y/title/x") { assert Album.where(:title => 'x', :performer => 'y').first }
   end
 
   it('flushes cache on save') do
