@@ -31,10 +31,13 @@ module ActiveRecord
         offset_value.nil? &&
         joins_values.blank? &&
         order_values.blank? &&
+        !reverse_order_value &&
         includes_values.blank? &&
         preload_values.blank? &&
         select_values.blank? &&
-        group_values.blank?
+        group_values.blank? &&
+        from_value.nil? &&
+        lock_value.nil?
 
       if can_cache
         cache_key_prefix = ['cache_find_by', table.name]
