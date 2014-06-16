@@ -75,9 +75,19 @@ describe 'ActiveRecord::Base.cache_find_by' do
     assert_caches("cache_find_by/albums/performer/x") { assert Album.find_by_performer('x') }
   end
 
+  it('caches find_by_x! with one attribute') do
+    Album.create!(:performer => 'x')
+    assert_caches("cache_find_by/albums/performer/x") { assert Album.find_by_performer!('x') }
+  end
+
   it('caches where.first with one attribute') do
     Album.create!(:performer => 'x')
     assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first }
+  end
+
+  it('caches where.first! with one attribute') do
+    Album.create!(:performer => 'x')
+    assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first! }
   end
 
   it('does not cache where.last with one attribute') do
