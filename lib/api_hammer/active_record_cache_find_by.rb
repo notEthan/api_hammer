@@ -95,7 +95,13 @@ module ActiveRecord
           self.cache_find_bys = Set.new
           after_update :flush_find_cache
         end
-        self.cache_find_bys |= [attribute_names.map { |n| n.is_a?(Symbol) ? n.to_s : n.is_a?(String) ? n : raise(ArgumentError) }.sort]
+
+        find_by = attribute_names.map do |name|
+          raise(ArgumentError) unless name.is_a?(Symbol) || name.is_a?(String)
+          name.to_s.dup.freeze
+        end.sort.freeze
+
+        self.cache_find_bys = (cache_find_bys | [find_by]).freeze
       end
     end
 
