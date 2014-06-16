@@ -90,6 +90,13 @@ describe 'ActiveRecord::Base.cache_find_by' do
     assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first! }
   end
 
+  if ActiveRecord::Relation.method_defined?(:take)
+    it('caches where.take with one attribute') do
+      Album.create!(:performer => 'x')
+      assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').take }
+    end
+  end
+
   it('does not cache where.last with one attribute') do
     Album.create!(:performer => 'x')
     assert_not_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').last }
