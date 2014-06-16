@@ -32,6 +32,10 @@ class Album < ActiveRecord::Base
   cache_find_by(:title, :performer)
 end
 
+class VinylAlbum < Album
+  self.finder_cache = ActiveSupport::Cache::MemoryStore.new
+end
+
 describe 'ActiveRecord::Base.cache_find_by' do
   def assert_caches(key)
     assert !Rails.cache.read(key)
@@ -109,5 +113,9 @@ describe 'ActiveRecord::Base.cache_find_by' do
     album.update_attributes!(:performer => 'z')
     assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
     assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
+  end
+
+  it 'inherits cache_find_bys' do
+    assert VinylAlbum.cache_find_bys.any? { |f| f == ['id'] }
   end
 end
