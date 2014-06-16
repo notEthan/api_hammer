@@ -37,18 +37,18 @@ class VinylAlbum < Album
 end
 
 describe 'ActiveRecord::Base.cache_find_by' do
-  def assert_caches(key)
-    assert !Rails.cache.read(key)
+  def assert_caches(key, cache = Rails.cache)
+    assert !cache.read(key)
     yield
   ensure
-    assert Rails.cache.read(key)
+    assert cache.read(key)
   end
 
-  def assert_not_caches(key)
-    assert !Rails.cache.read(key)
+  def assert_not_caches(key, cache = Rails.cache)
+    assert !cache.read(key)
     yield
   ensure
-    assert !Rails.cache.read(key)
+    assert !cache.read(key)
   end
 
   after do
@@ -117,5 +117,25 @@ describe 'ActiveRecord::Base.cache_find_by' do
 
   it 'inherits cache_find_bys' do
     assert VinylAlbum.cache_find_bys.any? { |f| f == ['id'] }
+  end
+
+  it 'uses a different cache when specified' do
+    assert Album.finder_cache != VinylAlbum.finder_cache
+
+    id = Album.create!(:title => 'x').id
+    key = "cache_find_by/albums/id/#{id}"
+    assert_caches(key) do
+      assert_not_caches(key, VinylAlbum.finder_cache) do
+        assert Album.find(id)
+      end
+    end
+
+    id = VinylAlbum.create!(:title => 'x').id
+    key = "cache_find_by/albums/id/#{id}"
+    assert_caches(key, VinylAlbum.finder_cache) do
+      assert_not_caches(key) do
+        assert VinylAlbum.find(id)
+      end
+    end
   end
 end
