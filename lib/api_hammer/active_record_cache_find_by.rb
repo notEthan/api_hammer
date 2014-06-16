@@ -27,7 +27,7 @@ module ActiveRecord
           where_value.right
         end
       end
-      cache_find_bys = klass.cache_find_bys
+      cache_find_bys = klass.send(:cache_find_bys)
       can_cache &&= cache_find_bys &&
         !loaded? && # if it's loaded no need to hit cache 
         where_values.all? { |wv| wv.is_a?(Arel::Nodes::Equality) } && # no inequality or that sort of thing 
@@ -68,14 +68,6 @@ module ActiveRecord
         # dummy; this gets set below 
       end
 
-      def cache_find_bys=(val)
-        define_singleton_method(:cache_find_bys) { val }
-      end
-
-      def cache_find_bys
-        nil
-      end
-
       # causes requests to retrieve a record by the given attributes (all of them) to be cached. 
       # this is for single records only. it is unsafe to use with a set of attributes whose values 
       # (in conjunction) may be associated with multiple records. 
@@ -104,6 +96,15 @@ module ActiveRecord
       end
 
       private
+      def cache_find_bys=(val)
+        define_singleton_method(:cache_find_bys) { val }
+        (class << self; self; end).send(:private, :cache_find_bys)
+      end
+
+      def cache_find_bys
+        nil
+      end
+
       def cache_key_for(find_attributes)
         attrs = find_attributes.map { |k,v| [k.to_s, v.to_s] }.sort_by(&:first).inject([], &:+)
         cache_key_prefix = ['cache_find_by', table_name]
@@ -120,7 +121,7 @@ module ActiveRecord
 
     # clears this record from the cache used by cache_find_by
     def flush_find_cache
-      self.class.cache_find_bys.each do |attribute_names|
+      self.class.send(:cache_find_bys).each do |attribute_names|
         find_attributes = attribute_names.map { |attr_name| [attr_name, attribute_was(attr_name)] }
         self.class.instance_exec(find_attributes) do |find_attributes|
           finder_cache.delete(cache_key_for(find_attributes))

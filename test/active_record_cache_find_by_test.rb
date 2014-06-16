@@ -134,7 +134,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
   end
 
   it 'inherits cache_find_bys' do
-    assert VinylAlbum.cache_find_bys.any? { |f| f == ['id'] }
+    assert VinylAlbum.send(:cache_find_bys).any? { |f| f == ['id'] }
   end
 
   it 'uses a different cache when specified' do
