@@ -48,7 +48,7 @@ module ActiveRecord
         cache_key_prefix = ['cache_find_by', table.name]
         find_attributes = where_values.sort_by { | wv| wv.left.name }.map { |wv| [wv.left.name, actual_right.call(wv)] }.inject([], &:+)
         cache_key = (cache_key_prefix + find_attributes).join('/')
-        ::Rails.cache.fetch(cache_key) do
+        klass.finder_cache.fetch(cache_key) do
           yield
         end
       else
@@ -59,9 +59,22 @@ module ActiveRecord
 
   class Base
     class << self
+      def finder_cache=(val)
+        define_singleton_method(:finder_cache) { val }
+      end
+
+      # the cache. should be an instance of some sort of ActiveSupport::Cache::Store. 
+      # by default uses Rails.cache if that exists, or creates a ActiveSupport::Cache::MemoryStore to use. 
+      # set this per-model or on ActiveRecord::Base, as needed; it is inherited. 
+      def finder_cache
+        # dummy; this gets set below 
+      end
+
       # causes requests to retrieve a record by the given attributes (all of them) to be cached. 
       # this is for single records only. it is unsafe to use with a set of attributes whose values 
       # (in conjunction) may be associated with multiple records. 
+      #
+      # see .finder_cache and .find_cache= for where it is cached. 
       #
       # #flush_find_cache is defined on the instance. it is called on save to clear an updated record from 
       # the cache. it may also be called explicitly to clear a record from the cache. 
@@ -78,13 +91,17 @@ module ActiveRecord
       end
     end
 
+    # the above dummy method has no content because we want to evaluate this now, not in the method, to 
+    # avoid instantiating duplicate MemoryStores. 
+    self.finder_cache = (Object.const_defined?(:Rails) && ::Rails.cache) || ::ActiveSupport::Cache::MemoryStore.new
+
     # clears this record from the cache used by cache_find_by
     def flush_find_cache
       self.class.instance_eval { @cache_find_by }.each do |attribute_names|
         cache_key_prefix = ['cache_find_by', self.class.table_name]
         find_attributes = attribute_names.map { |attr_name| [attr_name, self.send(:attribute_was, attr_name)] }.inject([], &:+)
         cache_key = (cache_key_prefix + find_attributes).join('/')
-        ::Rails.cache.delete(cache_key)
+        self.class.finder_cache.delete(cache_key)
       end
       nil
     end
