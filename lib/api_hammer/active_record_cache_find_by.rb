@@ -45,9 +45,7 @@ module ActiveRecord
         lock_value.nil?
 
       if can_cache
-        cache_key_prefix = ['cache_find_by', table.name]
-        find_attributes = where_values.sort_by { | wv| wv.left.name }.map { |wv| [wv.left.name, actual_right.call(wv)] }.inject([], &:+)
-        cache_key = (cache_key_prefix + find_attributes).join('/')
+        cache_key = klass.send(:cache_key_for, where_values.map { |wv| [wv.left.name, actual_right.call(wv)] })
         klass.finder_cache.fetch(cache_key) do
           yield
         end
@@ -104,6 +102,15 @@ module ActiveRecord
 
         self.cache_find_bys = (cache_find_bys | [find_by]).freeze
       end
+
+      private
+      def cache_key_for(find_attributes)
+        attrs = find_attributes.map { |k,v| [k.to_s, v.to_s] }.sort_by(&:first).inject([], &:+)
+        cache_key_prefix = ['cache_find_by', table_name]
+        cache_key = (cache_key_prefix + attrs).map do |part|
+          (URI.const_defined?(:Parser) ? URI::Parser.new : URI).escape(part, /[^a-z0-9\-\.\_\~]/i)
+        end.join('/')
+      end
     end
 
     # the above dummy method has no content because we want to evaluate this now, not in the method, to 
@@ -113,10 +120,10 @@ module ActiveRecord
     # clears this record from the cache used by cache_find_by
     def flush_find_cache
       self.class.cache_find_bys.each do |attribute_names|
-        cache_key_prefix = ['cache_find_by', self.class.table_name]
-        find_attributes = attribute_names.map { |attr_name| [attr_name, self.send(:attribute_was, attr_name)] }.inject([], &:+)
-        cache_key = (cache_key_prefix + find_attributes).join('/')
-        self.class.finder_cache.delete(cache_key)
+        find_attributes = attribute_names.map { |attr_name| [attr_name, self.send(:attribute_was, attr_name)] }
+        self.class.instance_exec(find_attributes) do |find_attributes|
+          finder_cache.delete(cache_key_for(find_attributes))
+        end
       end
       nil
     end
