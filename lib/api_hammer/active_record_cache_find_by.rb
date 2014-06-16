@@ -13,6 +13,11 @@ module ActiveRecord
       end
     end
 
+    # retrieves one record, hitting the cache if appropriate. the argument may bypass caching 
+    # (the caller could elect to just not call this method if caching is to be avoided, but since this 
+    # method already builds in opting whether or not to hit cache, the code is simpler just passing that in).
+    #
+    # requires a block which returns the record 
     def one_record_with_caching(can_cache = true)
       actual_right = proc do |where_value|
         if where_value.right.is_a?(Arel::Nodes::BindParam)
@@ -54,6 +59,15 @@ module ActiveRecord
 
   class Base
     class << self
+      # causes requests to retrieve a record by the given attributes (all of them) to be cached. 
+      # this is for single records only. it is unsafe to use with a set of attributes whose values 
+      # (in conjunction) may be associated with multiple records. 
+      #
+      # #flush_find_cache is defined on the instance. it is called on save to clear an updated record from 
+      # the cache. it may also be called explicitly to clear a record from the cache. 
+      #
+      # beware of multiple application servers with different caches - a record cached in multiple will not 
+      # be invalidated in all when it is saved in one.
       def cache_find_by(*attribute_names)
         unless @cache_find_by
           # initial setup
@@ -64,6 +78,7 @@ module ActiveRecord
       end
     end
 
+    # clears this record from the cache used by cache_find_by
     def flush_find_cache
       self.class.instance_eval { @cache_find_by }.each do |attribute_names|
         cache_key_prefix = ['cache_find_by', self.class.table_name]
