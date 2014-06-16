@@ -94,6 +94,7 @@ module ActiveRecord
           # initial setup
           self.cache_find_bys = Set.new
           after_update :flush_find_cache
+          before_destroy :flush_find_cache
         end
 
         find_by = attribute_names.map do |name|

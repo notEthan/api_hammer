@@ -52,8 +52,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
   end
 
   after do
-    Album.destroy_all
-    Rails.cache.clear
+    Album.all.each(&:destroy)
   end
 
   it('caches #find by primary key') do
@@ -111,6 +110,15 @@ describe 'ActiveRecord::Base.cache_find_by' do
     assert_caches(key1 = "cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
     assert_caches(key2 = "cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
     album.update_attributes!(:performer => 'z')
+    assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
+    assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
+  end
+
+  it('flushes cache on destroy') do
+    album = Album.create!(:title => 'x', :performer => 'y')
+    assert_caches(key1 = "cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
+    assert_caches(key2 = "cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
+    album.destroy
     assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
     assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
   end
