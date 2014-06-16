@@ -107,8 +107,9 @@ module ActiveRecord
       def cache_key_for(find_attributes)
         attrs = find_attributes.map { |k,v| [k.to_s, v.to_s] }.sort_by(&:first).inject([], &:+)
         cache_key_prefix = ['cache_find_by', table_name]
+        @parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
         cache_key = (cache_key_prefix + attrs).map do |part|
-          (URI.const_defined?(:Parser) ? URI::Parser.new : URI).escape(part, /[^a-z0-9\-\.\_\~]/i)
+          @parser.escape(part, /[^a-z0-9\-\.\_\~]/i)
         end.join('/')
       end
     end
