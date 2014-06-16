@@ -146,4 +146,12 @@ describe 'ActiveRecord::Base.cache_find_by' do
       end
     end
   end
+
+  it 'does not get confused by values with slashes' do
+    Album.create!(:title => 'z', :performer => 'y/title/x')
+    Album.create!(:title => 'x', :performer => 'y')
+
+    Album.where(:performer => 'y', :title => 'x').first
+    assert_equal 'z', Album.where(:performer => 'y/title/x').first.title
+  end
 end
