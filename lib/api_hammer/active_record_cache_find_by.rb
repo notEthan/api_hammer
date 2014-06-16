@@ -1,3 +1,5 @@
+require 'active_record'
+
 module ActiveRecord
   class Relation
     if !method_defined?(:first_without_caching)
