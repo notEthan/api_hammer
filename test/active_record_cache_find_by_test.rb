@@ -28,7 +28,7 @@ end
 
 class Album < ActiveRecord::Base
   cache_find_by(:id)
-  cache_find_by(:title)
+  cache_find_by(:performer)
   cache_find_by(:title, :performer)
 end
 
@@ -56,43 +56,43 @@ describe 'ActiveRecord::Base.cache_find_by' do
   end
 
   it('caches #find by primary key') do
-    id = Album.create!(:title => 'x').id
+    id = Album.create!.id
     assert_caches("cache_find_by/albums/id/#{id}") { assert Album.find(id) }
   end
 
   it('caches #find_by_id') do
-    id = Album.create!(:title => 'x').id
+    id = Album.create!.id
     assert_caches("cache_find_by/albums/id/#{id}") { assert Album.find_by_id(id) }
   end
 
   it('caches #where.first with primary key') do
-    id = Album.create!(:title => 'x').id
+    id = Album.create!.id
     assert_caches("cache_find_by/albums/id/#{id}") { assert Album.where(:id => id).first }
   end
 
   it('caches find_by_x with one attribute') do
-    Album.create!(:title => 'x')
-    assert_caches("cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
+    Album.create!(:performer => 'x')
+    assert_caches("cache_find_by/albums/performer/x") { assert Album.find_by_performer('x') }
   end
 
   it('caches where.first with one attribute') do
-    Album.create!(:title => 'x')
-    assert_caches("cache_find_by/albums/title/x") { assert Album.where(:title => 'x').first }
+    Album.create!(:performer => 'x')
+    assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first }
   end
 
   it('does not cache where.last with one attribute') do
-    Album.create!(:title => 'x')
-    assert_not_caches("cache_find_by/albums/title/x") { assert Album.where(:title => 'x').last }
+    Album.create!(:performer => 'x')
+    assert_not_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').last }
   end
 
   it('does not cache find_by_x with one attribute') do
-    Album.create!(:performer => 'x')
-    assert_not_caches("cache_find_by/albums/performer/x") { assert Album.find_by_performer('x') }
+    Album.create!(:title => 'x')
+    assert_not_caches("cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
   end
 
   it('does not cache where.first with one attribute') do
-    Album.create!(:performer => 'x')
-    assert_not_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first }
+    Album.create!(:title => 'x')
+    assert_not_caches("cache_find_by/albums/title/x") { assert Album.where(:title => 'x').first }
   end
 
   it('caches find_by_x with two attributes') do
@@ -108,7 +108,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
   it('flushes cache on save') do
     album = Album.create!(:title => 'x', :performer => 'y')
     assert_caches(key1 = "cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
-    assert_caches(key2 = "cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
+    assert_caches(key2 = "cache_find_by/albums/performer/y") { assert Album.find_by_performer('y') }
     album.update_attributes!(:performer => 'z')
     assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
     assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
@@ -117,7 +117,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
   it('flushes cache on destroy') do
     album = Album.create!(:title => 'x', :performer => 'y')
     assert_caches(key1 = "cache_find_by/albums/performer/y/title/x") { assert Album.find_by_title_and_performer('x', 'y') }
-    assert_caches(key2 = "cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
+    assert_caches(key2 = "cache_find_by/albums/performer/y") { assert Album.find_by_performer('y') }
     album.destroy
     assert !Rails.cache.read(key1), Rails.cache.instance_eval { @data }.inspect
     assert !Rails.cache.read(key2), Rails.cache.instance_eval { @data }.inspect
@@ -130,7 +130,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
   it 'uses a different cache when specified' do
     assert Album.finder_cache != VinylAlbum.finder_cache
 
-    id = Album.create!(:title => 'x').id
+    id = Album.create!.id
     key = "cache_find_by/albums/id/#{id}"
     assert_caches(key) do
       assert_not_caches(key, VinylAlbum.finder_cache) do
@@ -138,7 +138,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
       end
     end
 
-    id = VinylAlbum.create!(:title => 'x').id
+    id = VinylAlbum.create!.id
     key = "cache_find_by/albums/id/#{id}"
     assert_caches(key, VinylAlbum.finder_cache) do
       assert_not_caches(key) do
