@@ -102,6 +102,21 @@ describe 'ActiveRecord::Base.cache_find_by' do
     assert_not_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').last }
   end
 
+  it('does not cache find with array') do
+    ids = [Album.create!.id, Album.create!.id]
+    assert_not_caches("cache_find_by/albums/id/#{ids.first}") { assert Album.find(ids) }
+  end
+
+  it('does not cache find_by_x with array') do
+    ids = [Album.create!.id, Album.create!.id]
+    assert_not_caches("cache_find_by/albums/id/#{ids.first}") { assert Album.find_by_id(ids) }
+  end
+
+  it('does not cache where.first with array') do
+    ids = [Album.create!.id, Album.create!.id]
+    assert_not_caches("cache_find_by/albums/id/#{ids.first}") { assert Album.where(:id => ids).first }
+  end
+
   it('does not cache find_by_x with one attribute') do
     Album.create!(:title => 'x')
     assert_not_caches("cache_find_by/albums/title/x") { assert Album.find_by_title('x') }
