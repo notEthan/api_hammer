@@ -1,3 +1,6 @@
+# 0.3.0
+- ActiveRecord::Base.cache_find_by
+
 # 0.2.2
 - RequestLogger, in addition to logging response bodies on error, logs id/uuid fields from request body and 
   response body if there's no error
