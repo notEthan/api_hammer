@@ -100,7 +100,7 @@ module ActiveRecord
       private
       def cache_find_bys=(val)
         define_singleton_method(:cache_find_bys) { val }
-        (class << self; self; end).send(:private, :cache_find_bys)
+        singleton_class.send(:private, :cache_find_bys)
       end
 
       def cache_find_bys
