@@ -38,17 +38,17 @@ end
 
 describe 'ActiveRecord::Base.cache_find_by' do
   def assert_caches(key, cache = Rails.cache)
-    assert !cache.read(key)
+    assert !cache.read(key), "cache already contains a key #{key}: #{cache.read(key)}"
     yield
   ensure
-    assert cache.read(key)
+    assert cache.read(key), "key #{key} was not cached"
   end
 
   def assert_not_caches(key, cache = Rails.cache)
-    assert !cache.read(key)
+    assert !cache.read(key), "cache already contains a key #{key}: #{cache.read(key)}"
     yield
   ensure
-    assert !cache.read(key)
+    assert !cache.read(key), "key was incorrectly cached - #{key}: #{cache.read(key)}"
   end
 
   after do
