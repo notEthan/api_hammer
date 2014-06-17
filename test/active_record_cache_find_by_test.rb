@@ -23,6 +23,7 @@ ActiveRecord::Schema.define do
   create_table :albums do |table|
     table.column :title, :string
     table.column :performer, :string
+    table.column :tracks, :integer
   end
 end
 
@@ -30,6 +31,7 @@ class Album < ActiveRecord::Base
   cache_find_by(:id)
   cache_find_by(:performer)
   cache_find_by(:title, :performer)
+  cache_find_by(:tracks)
 end
 
 class VinylAlbum < Album
@@ -88,6 +90,16 @@ describe 'ActiveRecord::Base.cache_find_by' do
   it('caches where.first! with one attribute') do
     Album.create!(:performer => 'x')
     assert_caches("cache_find_by/albums/performer/x") { assert Album.where(:performer => 'x').first! }
+  end
+
+  it('caches #where.first with integer attribute') do
+    id = Album.create!(:tracks => 3).id
+    assert_caches("cache_find_by/albums/tracks/3") { assert Album.where(:tracks => 3).first }
+  end
+
+  it('does not cache #where.first with inequality of integer attribute') do
+    id = Album.create!(:tracks => 3).id
+    assert_not_caches("cache_find_by/albums/tracks/3") { assert Album.where(Album.arel_table['tracks'].gteq(3)).first }
   end
 
   if ActiveRecord::Relation.method_defined?(:take)
