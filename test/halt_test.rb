@@ -36,10 +36,8 @@ describe 'ApiHammer::Rails#halt' do
     it 'returns a record if it exists' do
       record = Object.new
       model = Class.new do
-        (class << self; self; end).class_eval do
-          define_method(:where) { |attrs| [record] }
-          define_method(:table_name) { 'records' }
-        end
+        define_singleton_method(:where) { |attrs| [record] }
+        define_singleton_method(:table_name) { 'records' }
       end
       assert_equal record, FakeController.new.find_or_halt(model, {:id => 'anid'})
     end
