@@ -36,6 +36,7 @@ class Album < ActiveRecord::Base
   cache_find_by(:performer)
   cache_find_by(:title, :performer)
   cache_find_by(:tracks)
+  cache_find_by(:catalog_xid, :title)
 end
 
 class Catalog < ActiveRecord::Base
@@ -63,6 +64,7 @@ describe 'ActiveRecord::Base.cache_find_by' do
 
   after do
     Album.all.each(&:destroy)
+    Catalog.all.each(&:destroy)
   end
 
   it('caches #find by primary key') do
@@ -155,6 +157,13 @@ describe 'ActiveRecord::Base.cache_find_by' do
   it('caches where.first with two attributes') do
     Album.create!(:title => 'x', :performer => 'y')
     assert_caches("cache_find_by/albums/performer/y/title/x") { assert Album.where(:title => 'x', :performer => 'y').first }
+  end
+
+  it('caches with two attributes on an association with a where') do
+    c = Catalog.create!
+    Album.create!(:title => 'x', :performer => 'y', :catalog_xid => c.id)
+    c = Catalog.first
+    assert_caches("cache_find_by/albums/catalog_xid/#{c.id}/title/x") { assert c.albums.where(:title => 'x').first }
   end
 
   it('flushes cache on save') do
