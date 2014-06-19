@@ -1,3 +1,6 @@
+# 0.3.1
+- bugfix ActiveRecord::Base.cache_find_by
+
 # 0.3.0
 - ActiveRecord::Base.cache_find_by
 
