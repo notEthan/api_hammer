@@ -1,3 +1,6 @@
+# 0.3.3
+- be a little lazier about initializing ActiveRecord::Base.finder_cache - only on first actual usage 
+
 # 0.3.2
 - ActiveRecord::Base.cache_find_by support finding on associations, fix bind detection with symbols 
 
