@@ -2,5 +2,6 @@
 
 gemfile:
   - Gemfile_ar_3
-  - Gemfile_ar_4
+  - Gemfile_ar_40
+  - Gemfile_ar_41
 script: rake test
