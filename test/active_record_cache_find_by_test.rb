@@ -24,14 +24,22 @@ ActiveRecord::Schema.define do
     table.column :title, :string
     table.column :performer, :string
     table.column :tracks, :integer
+    table.column :catalog_xid, :integer
+  end
+  create_table :catalogs do |table|
   end
 end
 
 class Album < ActiveRecord::Base
+  belongs_to :catalog, :foreign_key => :catalog_xid
   cache_find_by(:id)
   cache_find_by(:performer)
   cache_find_by(:title, :performer)
   cache_find_by(:tracks)
+end
+
+class Catalog < ActiveRecord::Base
+  has_many :albums, :foreign_key => :catalog_xid
 end
 
 class VinylAlbum < Album
@@ -197,5 +205,13 @@ describe 'ActiveRecord::Base.cache_find_by' do
 
     Album.where(:performer => 'y', :title => 'x').first
     assert_equal 'z', Album.where(:performer => 'y/title/x').first.title
+  end
+
+  it 'works with a symbol on the left' do
+    # this makes an association with :catalog_xid as the left side of a where_value. these are usually 
+    # strings. this just makes sure it doesn't error out. 
+    c = Catalog.create!
+    c = Catalog.first
+    c.albums.where(:title => 'y').first
   end
 end
