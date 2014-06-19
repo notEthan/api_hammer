@@ -67,7 +67,10 @@ module ActiveRecord
       # by default uses Rails.cache if that exists, or creates a ActiveSupport::Cache::MemoryStore to use. 
       # set this per-model or on ActiveRecord::Base, as needed; it is inherited. 
       def finder_cache
-        # dummy; this gets set below 
+        # if this looks weird, it kind of is. on the first invocation of #finder_cache, we call finder_cache= 
+        # which overwrites the finder_cache method, and this then calls the newly defined method. 
+        self.finder_cache = (Object.const_defined?(:Rails) && ::Rails.cache) || ::ActiveSupport::Cache::MemoryStore.new
+        self.finder_cache
       end
 
       # causes requests to retrieve a record by the given attributes (all of them) to be cached. 
@@ -116,10 +119,6 @@ module ActiveRecord
         end.join('/')
       end
     end
-
-    # the above dummy method has no content because we want to evaluate this now, not in the method, to 
-    # avoid instantiating duplicate MemoryStores. 
-    self.finder_cache = (Object.const_defined?(:Rails) && ::Rails.cache) || ::ActiveSupport::Cache::MemoryStore.new
 
     # clears this record from the cache used by cache_find_by
     def flush_find_cache
