@@ -33,7 +33,7 @@ module ActiveRecord
       can_cache &&= cache_find_bys &&
         !loaded? && # if it's loaded no need to hit cache 
         where_values.all? { |wv| wv.is_a?(Arel::Nodes::Equality) } && # no inequality or that sort of thing 
-        cache_find_bys.include?(where_values.map { |wv| wv.left.name }.sort) && # any of the set of where-values to cache match this relation 
+        cache_find_bys.include?(where_values.map { |wv| wv.left.name.to_s }.sort) && # any of the set of where-values to cache match this relation 
         where_values.map(&actual_right).all? { |r| r.is_a?(String) || r.is_a?(Numeric) } && # check all right side values are simple types, number or string 
         offset_value.nil? &&
         joins_values.blank? &&
