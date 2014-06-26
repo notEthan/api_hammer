@@ -1,3 +1,6 @@
+# 0.4.0
+- ApiHammer::Faraday::RequestLogger
+
 # 0.3.3
 - be a little lazier about initializing ActiveRecord::Base.finder_cache - only on first actual usage 
 
