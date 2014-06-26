@@ -32,4 +32,13 @@ describe ApiHammer::RequestLogger do
       assert(logio.string.include?(Term::ANSIColor.send(color, status.to_s)))
     end
   end
+
+  it 'registers by name' do
+    conn = Faraday.new do |f|
+      f.request :api_hammer_request_logger, logger
+      f.use Faraday::Adapter::Rack, proc { |env| [200, {}, []] }
+    end
+    conn.get '/'
+    assert_match(/200/, logio.string)
+  end
 end
