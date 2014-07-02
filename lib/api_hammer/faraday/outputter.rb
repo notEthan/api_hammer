@@ -3,7 +3,7 @@ require 'rack'
 
 module ApiHammer
   # outputs the response body to the given logger or output device (defaulting to STDOUT) 
-  class FaradayOutputter < Faraday::Middleware
+  class FaradayOutputter < ::Faraday::Middleware
     def initialize(app, options={})
       @app=app
       @options = options
