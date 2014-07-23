@@ -63,7 +63,7 @@ module ApiHammer
           end
           if parsed
             charset = attributes['charset'].first
-            if Encoding.list.any? { |enc| enc.to_s.downcase == charset.downcase }
+            if charset && Encoding.list.any? { |enc| enc.to_s.downcase == charset.downcase }
               if response_body.dup.force_encoding(charset).valid_encoding?
                 response_body.force_encoding(charset)
               else

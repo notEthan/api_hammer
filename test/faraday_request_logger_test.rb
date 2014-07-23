@@ -57,7 +57,19 @@ describe ApiHammer::RequestLogger do
       assert_match(/Jalapeños/, logio.string)
     end
 
-    it 'deals with encoding not specified by the content type' do
+    it 'deals content type specifying no encoding' do
+      app = proc do |env|
+        [200, {'Content-Type' => 'text/plain; x=y'}, ["Jalapeños".force_encoding("ASCII-8BIT")]]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert_match(/Jalapeños/, logio.string)
+    end
+
+    it 'deals with no content type' do
       app = proc do |env|
         [200, {}, ["Jalapeños".force_encoding("ASCII-8BIT")]]
       end
