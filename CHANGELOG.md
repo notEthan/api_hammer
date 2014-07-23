@@ -1,3 +1,6 @@
+# 0.4.3
+- bugfix
+
 # 0.4.2
 - bugfix encoding in faraday request logger
 
