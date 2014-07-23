@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.call(File.expand_path('.', File.dirname(__FILE__)))
 require 'helper'
 require 'logger'
@@ -40,5 +42,55 @@ describe ApiHammer::RequestLogger do
     end
     conn.get '/'
     assert_match(/200/, logio.string)
+  end
+
+  describe 'response body encoding' do
+    it 'deals with encoding specified properly by the content type' do
+      app = proc do |env|
+        [200, {'Content-Type' => 'text/plain; charset=utf-8'}, ["Jalapeños".force_encoding("ASCII-8BIT")]]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert_match(/Jalapeños/, logio.string)
+    end
+
+    it 'deals with encoding not specified by the content type' do
+      app = proc do |env|
+        [200, {}, ["Jalapeños".force_encoding("ASCII-8BIT")]]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert_match(/Jalapeños/, logio.string)
+    end
+
+    it 'falls back to array of codepoints when encoding is improperly specified by the content type' do
+      app = proc do |env|
+        [200, {'Content-Type' => 'text/plain; charset=utf-8'}, ["xx" + [195].pack("C*")]]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert_match('[120,120,195]', logio.string)
+    end
+
+    it 'falls back to array of codepoints when encoding is not specified and not valid utf8' do
+      app = proc do |env|
+        [200, {}, ["xx" + [195].pack("C*")]]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert_match('[120,120,195]', logio.string)
+    end
   end
 end
