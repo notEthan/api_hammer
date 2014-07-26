@@ -12,6 +12,40 @@ if Faraday::Request.respond_to?(:register_middleware)
 end
 
 module ApiHammer
+  # parses attributes out of content type header
+  class ContentTypeAttrs
+    def initialize(content_type)
+      @content_type = content_type
+      @parsed = false
+      @attributes = Hash.new { |h,k| h[k] = [] }
+      catch(:unparseable) do
+        uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
+        scanner = StringScanner.new(content_type)
+        scanner.scan(/.*;\s*/) || throw(:unparseable)
+        while match = scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
+          key = scanner[1]
+          quote1 = scanner[2]
+          value = scanner[3]
+          quote2 = scanner[4]
+          comma_follows = !scanner[5].empty?
+          throw(:unparseable) unless quote1 == quote2
+          throw(:unparseable) if !comma_follows && !scanner.eos?
+          @attributes[uri_parser.unescape(key)] << uri_parser.unescape(value)
+        end
+        throw(:unparseable) unless scanner.eos?
+        @parsed = true
+      end
+    end
+
+    def parsed?
+      @parsed
+    end
+
+    def [](key)
+      @attributes[key]
+    end
+  end
+
   class Faraday
     # Faraday middleware for logging.
     #
@@ -41,28 +75,9 @@ module ApiHammer
         end
 
         if content_type
-          # TODO refactor this parsing somewhere better? 
-          parsed = false
-          attributes = Hash.new { |h,k| h[k] = [] }
-          catch(:unparseable) do
-            uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
-            scanner = StringScanner.new(content_type)
-            scanner.scan(/.*;\s*/) || throw(:unparseable)
-            while match = scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
-              key = scanner[1]
-              quote1 = scanner[2]
-              value = scanner[3]
-              quote2 = scanner[4]
-              comma_follows = !scanner[5].empty?
-              throw(:unparseable) unless quote1 == quote2
-              throw(:unparseable) if !comma_follows && !scanner.eos?
-              attributes[uri_parser.unescape(key)] << uri_parser.unescape(value)
-            end
-            throw(:unparseable) unless scanner.eos?
-            parsed = true
-          end
-          if parsed
-            charset = attributes['charset'].first
+          content_type_attrs = ContentTypeAttrs.new(content_type)
+          if content_type_attrs.parsed?
+            charset = content_type_attrs['charset'].first
             if charset && Encoding.list.any? { |enc| enc.to_s.downcase == charset.downcase }
               if response_body.dup.force_encoding(charset).valid_encoding?
                 response_body.force_encoding(charset)
@@ -79,7 +94,7 @@ module ApiHammer
           # if updating by content-type didn't do it, try UTF8 since JSON wants that - but only 
           # if it seems to be valid utf8. 
           # don't try utf8 if the response content-type indicated something else. 
-          try_utf8 = !(parsed && attributes['charset'].any?)
+          try_utf8 = !(content_type_attrs && content_type_attrs.parsed? && content_type_attrs['charset'].any?)
           if try_utf8 && response_body.dup.force_encoding('UTF-8').valid_encoding?
             response_body.force_encoding('UTF-8')
           else
