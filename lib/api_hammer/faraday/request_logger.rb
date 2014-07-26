@@ -19,6 +19,7 @@ module ApiHammer
       @parsed = false
       @attributes = Hash.new { |h,k| h[k] = [] }
       catch(:unparseable) do
+        throw(:unparseable) unless content_type
         uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
         scanner = StringScanner.new(content_type)
         scanner.scan(/.*;\s*/) || throw(:unparseable)
@@ -74,17 +75,15 @@ module ApiHammer
           response_body.force_encoding('ASCII-8BIT')
         end
 
-        if content_type
-          content_type_attrs = ContentTypeAttrs.new(content_type)
-          if content_type_attrs.parsed?
-            charset = content_type_attrs['charset'].first
-            if charset && Encoding.list.any? { |enc| enc.to_s.downcase == charset.downcase }
-              if response_body.dup.force_encoding(charset).valid_encoding?
-                response_body.force_encoding(charset)
-              else
-                # I guess just ignore the specified encoding if the result is not valid. fall back to 
-                # something else below.
-              end
+        content_type_attrs = ContentTypeAttrs.new(content_type)
+        if content_type_attrs.parsed?
+          charset = content_type_attrs['charset'].first
+          if charset && Encoding.list.any? { |enc| enc.to_s.downcase == charset.downcase }
+            if response_body.dup.force_encoding(charset).valid_encoding?
+              response_body.force_encoding(charset)
+            else
+              # I guess just ignore the specified encoding if the result is not valid. fall back to 
+              # something else below.
             end
           end
         end
