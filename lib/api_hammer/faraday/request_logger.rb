@@ -15,6 +15,8 @@ module ApiHammer
   # parses attributes out of content type header
   class ContentTypeAttrs
     def initialize(content_type)
+      @media_type = content_type.split(/\s*[;]\s*/, 2).first if content_type
+      @media_type.strip! if @media_type
       @content_type = content_type
       @parsed = false
       @attributes = Hash.new { |h,k| h[k] = [] }
@@ -37,6 +39,8 @@ module ApiHammer
         @parsed = true
       end
     end
+
+    attr_reader :media_type
 
     def parsed?
       @parsed
@@ -106,6 +110,35 @@ module ApiHammer
         response_body
       end
 
+      def text?(content_type)
+        content_type_attrs = ContentTypeAttrs.new(content_type)
+        # ordered hash by priority mapping types to binary or text
+        # regexps will have \A and \z added 
+        types = {
+          %r(image/.*) => :binary,
+          %r(audio/.*) => :binary,
+          %r(video/.*) => :binary,
+          %r(model/.*) => :binary,
+          %r(text/.*) => :text,
+          %r(message/.*) => :text,
+          'application/octet-stream' => :binary,
+          'application/ogg' => :binary,
+          'application/pdf' => :binary,
+          'application/postscript' => :binary,
+          'application/zip' => :binary,
+          'application/gzip' => :binary,
+        }
+        media_type = content_type_attrs.media_type
+        types.each do |match, type|
+          matched = match.is_a?(Regexp) ? media_type =~ %r(\A#{match.source}\z) : media_type == match
+          if matched
+            return type == :text
+          end
+        end
+        # fallback (unknown or not given) assume text
+        return true
+      end
+
       def call(request_env)
         began_at = Time.now
 
@@ -133,12 +166,12 @@ module ApiHammer
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
               'headers' => request_env.request_headers,
-              'body' => request_body,
+              'body' => (request_body if text?(request_env.request_headers['Content-Type'])),
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => response_env.status,
               'headers' => response_env.response_headers,
-              'body' => response_body(response_env),
+              'body' => (response_body(response_env) if text?(response_env.response_headers['Content-Type'])),
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_i,
