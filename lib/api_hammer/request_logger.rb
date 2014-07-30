@@ -90,7 +90,8 @@ module ApiHammer
         # TODO form encoded
         end
         if body_object.is_a?(Hash)
-          body_object.reject { |key, value| !(key =~ /\b(uu)?id\b/ && value.is_a?(String)) }
+          sep = /(?:\b|\W|_)/
+          body_object.reject { |key, value| !(key =~ /#{sep}(uu)?id#{sep}/ && value.is_a?(String)) }
         end
       end
       request_body_ids = ids_from_body.call(@request_body, request.content_type)

@@ -20,4 +20,11 @@ describe ApiHammer::RequestLogger do
       assert(logio.string.include?(Term::ANSIColor.send(color, status.to_s)))
     end
   end
+
+  it 'logs id and uuid' do
+    body = %q({"uuid": "theuuid", "foo_uuid": "thefoouuid", "id": "theid", "id_for_x": "theidforx", "bar.id": "thebarid"})
+    app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }, logger)
+    app.call(Rack::MockRequest.env_for('/')).last.close
+    assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid"}), logio.string)
+  end
 end
