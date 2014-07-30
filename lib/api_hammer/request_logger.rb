@@ -97,14 +97,15 @@ module ApiHammer
           body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
         end
       end
-      request_body_ids = ids_from_body.call(@request_body, request.content_type)
-      data['request']['body_ids'] = request_body_ids if request_body_ids && request_body_ids.any?
       response_body_string = body.to_enum.to_a.join('')
       if (400..599).include?(status.to_i)
-        # only log response body if there was an error (either client or server) 
+        # only log bodies if there was an error (either client or server) 
+        data['request']['body'] = @request_body
         data['response']['body'] = response_body_string
       else
         # otherwise, log id and uuid fields 
+        request_body_ids = ids_from_body.call(@request_body, request.content_type)
+        data['request']['body_ids'] = request_body_ids if request_body_ids && request_body_ids.any?
         response_body_ids = ids_from_body.call(response_body_string, response.content_type)
         data['response']['body_ids'] = response_body_ids if response_body_ids && response_body_ids.any?
       end
