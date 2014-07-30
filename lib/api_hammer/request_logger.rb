@@ -85,9 +85,12 @@ module ApiHammer
       }
       ids_from_body = proc do |body_string, content_type|
         media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
-        if media_type == 'application/json'
-          body_object = JSON.parse(body_string) rescue nil
-        # TODO form encoded
+        body_object = begin
+          if media_type == 'application/json'
+            JSON.parse(body_string) rescue nil
+          elsif media_type == 'application/x-www-form-urlencoded'
+            CGI.parse(body_string).map { |k, vs| {k => vs.last} }.inject({}, &:update)
+          end
         end
         if body_object.is_a?(Hash)
           sep = /(?:\b|\W|_)/
