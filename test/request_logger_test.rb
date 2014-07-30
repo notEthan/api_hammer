@@ -22,16 +22,16 @@ describe ApiHammer::RequestLogger do
   end
 
   it 'logs id and uuid (json)' do
-    body = %q({"uuid": "theuuid", "foo_uuid": "thefoouuid", "id": "theid", "id_for_x": "theidforx", "bar.id": "thebarid"})
+    body = %q({"uuid": "theuuid", "foo_uuid": "thefoouuid", "id": "theid", "id_for_x": "theidforx", "bar.id": "thebarid", "baz-guid": "bazzz"})
     app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }, logger)
     app.call(Rack::MockRequest.env_for('/')).last.close
-    assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid"}), logio.string)
+    assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid","baz-guid":"bazzz"}), logio.string)
   end
 
   it 'logs id and uuid (form encoded)' do
-    body = %q(uuid=theuuid&foo_uuid=thefoouuid&id=theid&id_for_x=theidforx&bar.id=thebarid)
+    body = %q(uuid=theuuid&foo_uuid=thefoouuid&id=theid&id_for_x=theidforx&bar.id=thebarid&baz-guid=bazzz)
     app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/x-www-form-urlencoded; charset=UTF8'}, [body]] }, logger)
     app.call(Rack::MockRequest.env_for('/')).last.close
-    assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid"}), logio.string)
+    assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid","baz-guid":"bazzz"}), logio.string)
   end
 end

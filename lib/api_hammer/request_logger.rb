@@ -94,7 +94,7 @@ module ApiHammer
         end
         if body_object.is_a?(Hash)
           sep = /(?:\b|\W|_)/
-          body_object.reject { |key, value| !(key =~ /#{sep}(uu)?id#{sep}/ && value.is_a?(String)) }
+          body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
         end
       end
       request_body_ids = ids_from_body.call(@request_body, request.content_type)
