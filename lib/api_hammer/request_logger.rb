@@ -20,23 +20,25 @@ module ApiHammer
 
       # this is closed after the app is called, so read it before 
       env["rack.input"].rewind
-      @request_body = env["rack.input"].read
+      request_body = env["rack.input"].read
       env["rack.input"].rewind
 
       log_tags = Thread.current[:activesupport_tagged_logging_tags]
-      @log_tags = log_tags.dup if log_tags && log_tags.any?
+      log_tags = log_tags.dup if log_tags && log_tags.any?
 
-      status, headers, body = @app.call(env)
-      headers = ::Rack::Utils::HeaderHash.new(headers)
-      body_proxy = ::Rack::BodyProxy.new(body) { log(env, status, headers, began_at, body) }
-      [status, headers, body_proxy]
+      status, response_headers, response_body = @app.call(env)
+      response_headers = ::Rack::Utils::HeaderHash.new(response_headers)
+      body_proxy = ::Rack::BodyProxy.new(response_body) do
+        log(env, request_body, status, response_headers, response_body, began_at, log_tags)
+      end
+      [status, response_headers, body_proxy]
     end
 
-    def log(env, status, headers, began_at, body)
+    def log(env, request_body, status, response_headers, response_body, began_at, log_tags)
       now = Time.now
 
       request = Rack::Request.new(env)
-      response = Rack::Response.new('', status, headers)
+      response = Rack::Response.new('', status, response_headers)
 
       request_uri = Addressable::URI.new(
         :scheme => request.scheme,
@@ -73,14 +75,14 @@ module ApiHammer
         }.reject{|k,v| v.nil? },
         'response' => {
           'status' => status,
-          'length' => headers['Content-Length'] || body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
+          'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
           'Location' => response.location,
           'Content-Type' => response.content_type,
         }.reject{|k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_i,
           'duration' => now - began_at,
-          'activesupport_tagged_logging_tags' => @log_tags,
+          'activesupport_tagged_logging_tags' => log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
       }
       ids_from_body = proc do |body_string, content_type|
@@ -97,14 +99,14 @@ module ApiHammer
           body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
         end
       end
-      response_body_string = body.to_enum.to_a.join('')
+      response_body_string = response_body.to_enum.to_a.join('')
       if (400..599).include?(status.to_i)
         # only log bodies if there was an error (either client or server) 
-        data['request']['body'] = @request_body
+        data['request']['body'] = request_body
         data['response']['body'] = response_body_string
       else
         # otherwise, log id and uuid fields 
-        request_body_ids = ids_from_body.call(@request_body, request.content_type)
+        request_body_ids = ids_from_body.call(request_body, request.content_type)
         data['request']['body_ids'] = request_body_ids if request_body_ids && request_body_ids.any?
         response_body_ids = ids_from_body.call(response_body_string, response.content_type)
         data['response']['body_ids'] = response_body_ids if response_body_ids && response_body_ids.any?
@@ -117,8 +119,8 @@ module ApiHammer
         @logger.info json_data
       end
       # do the logging with tags that applied to the request if appropriate 
-      if @logger.respond_to?(:tagged) && @log_tags
-        @logger.tagged(@log_tags, &dolog)
+      if @logger.respond_to?(:tagged) && log_tags
+        @logger.tagged(log_tags, &dolog)
       else
         dolog.call
       end
