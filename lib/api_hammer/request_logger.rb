@@ -58,14 +58,26 @@ module ApiHammer
         :white
       end
       status_s = bold(send(status_color, status.to_s))
+
+      request_headers = env.map do |(key, value)|
+        http_match = key.match(/\AHTTP_/)
+        if http_match
+          name = http_match.post_match.downcase
+          {name => value}
+        else
+          name = %w(content_type content_length).detect { |name| name.downcase == key.downcase }
+          if name
+            {name => value}
+          end
+        end
+      end.compact.inject({}, &:update)
+
       data = {
         'request' => {
           'method' => request.request_method,
           'uri' => request_uri.normalize.to_s,
-          'length' => request.content_length,
-          'Content-Type' => request.content_type,
+          'headers' => request_headers,
           'remote_addr' => env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"],
-          'User-Agent' => request.user_agent,
           # these come from the OAuthenticator gem/middleware 
           'oauth.authenticated' => env['oauth.authenticated'],
           'oauth.consumer_key' => env['oauth.consumer_key'],
@@ -75,9 +87,8 @@ module ApiHammer
         }.reject{|k,v| v.nil? },
         'response' => {
           'status' => status,
+          'headers' => response_headers,
           'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
-          'Location' => response.location,
-          'Content-Type' => response.content_type,
         }.reject{|k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_i,
