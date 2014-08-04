@@ -38,7 +38,7 @@ describe ApiHammer::RequestLogger do
   it 'logs request and response body on error' do
     app = ApiHammer::RequestLogger.new(proc { |env| [400, {}, ['the_response_body']] }, logger)
     app.call(Rack::MockRequest.env_for('/', :input => 'the_request_body')).last.close
-    assert_match(/"request":\{[^\{]*"body":"the_request_body"/, logio.string)
-    assert_match(/"response":\{[^\{]*"body":"the_response_body"/, logio.string)
+    assert_match(/"request":\{.*"body":"the_request_body"/, logio.string)
+    assert_match(/"response":\{.*"body":"the_response_body"/, logio.string)
   end
 end
