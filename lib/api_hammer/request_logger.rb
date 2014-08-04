@@ -84,17 +84,17 @@ module ApiHammer
           'oauth.token' => env['oauth.token'],
           # airbrake
           'airbrake.error_id' => env['airbrake.error_id'],
-        }.reject{|k,v| v.nil? },
+        }.reject { |k,v| v.nil? },
         'response' => {
           'status' => status,
           'headers' => response_headers,
           'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
-        }.reject{|k,v| v.nil? },
+        }.reject { |k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_i,
           'duration' => now - began_at,
           'activesupport_tagged_logging_tags' => log_tags,
-        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject{|k,v| v.nil? },
+        }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject { |k,v| v.nil? },
       }
       ids_from_body = proc do |body_string, content_type|
         media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
