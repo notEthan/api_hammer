@@ -112,6 +112,7 @@ module ApiHammer
 
       def text?(content_type)
         content_type_attrs = ContentTypeAttrs.new(content_type)
+        media_type = content_type_attrs.media_type
         # ordered hash by priority mapping types to binary or text
         # regexps will have \A and \z added 
         types = {
@@ -128,7 +129,6 @@ module ApiHammer
           'application/zip' => :binary,
           'application/gzip' => :binary,
         }
-        media_type = content_type_attrs.media_type
         types.each do |match, type|
           matched = match.is_a?(Regexp) ? media_type =~ %r(\A#{match.source}\z) : media_type == match
           if matched

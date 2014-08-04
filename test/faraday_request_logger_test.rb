@@ -104,5 +104,25 @@ describe ApiHammer::RequestLogger do
       conn.get '/'
       assert_match('[120,120,195]', logio.string)
     end
+
+    {
+      'application/octet-stream' => false,
+      'image/png' => false,
+      'image/png; charset=what' => false,
+      'text/plain' => true,
+      'text/plain; charset=utf-8' => true,
+    }.each do |content_type, istext|
+      it "does #{istext ? '' : 'not'} log body for #{content_type}" do
+        app = proc do |env|
+          [200, {'Content-Type' => content_type}, ['data go here']]
+        end
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert(logio.string.include?('data go here') == istext)
+      end
+    end
   end
 end
