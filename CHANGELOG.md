@@ -1,3 +1,8 @@
+# v0.5.0
+- rack request logger logs all request and response headers
+- fix id / uuid / guid logging in rack request logger
+- faraday request logger does not log binary bodies 
+
 # 0.4.3
 - bugfix
 
