@@ -1,3 +1,6 @@
+# v0.6.0
+- ApiHammer::RailsOrSidekiqLogger
+
 # v0.5.0
 - rack request logger logs all request and response headers
 - fix id / uuid / guid logging in rack request logger
