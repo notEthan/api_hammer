@@ -6,6 +6,8 @@ module ApiHammer
   autoload :ShowTextExceptions, 'api_hammer/show_text_exceptions'
   autoload :TrailingNewline, 'api_hammer/trailing_newline'
   autoload :Weblink, 'api_hammer/weblink'
+  autoload :RailsOrSidekiqLoggerMiddleware, 'api_hammer/rails_or_sidekiq_logger'
+  autoload :RailsOrSidekiqLogger, 'api_hammer/rails_or_sidekiq_logger'
   autoload :FaradayOutputter, 'api_hammer/faraday/outputter'
   autoload :FaradayCurlVOutputter, 'api_hammer/faraday/outputter'
   module Faraday
