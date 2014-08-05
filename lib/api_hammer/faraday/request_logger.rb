@@ -4,13 +4,6 @@ require 'term/ansicolor'
 require 'json'
 require 'strscan'
 
-if Faraday.respond_to?(:register_middleware)
-  Faraday.register_middleware(:request, :api_hammer_request_logger => proc { ApiHammer::Faraday::RequestLogger })
-end
-if Faraday::Request.respond_to?(:register_middleware)
-  Faraday::Request.register_middleware(:api_hammer_request_logger => proc { ApiHammer::Faraday::RequestLogger })
-end
-
 module ApiHammer
   # parses attributes out of content type header
   class ContentTypeAttrs
@@ -51,7 +44,7 @@ module ApiHammer
     end
   end
 
-  class Faraday
+  module Faraday
     # Faraday middleware for logging.
     #
     # two lines:
