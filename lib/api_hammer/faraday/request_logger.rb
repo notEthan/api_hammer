@@ -64,6 +64,18 @@ module ApiHammer
       # deal with the vagaries of getting the response body in a form which JSON 
       # gem will not cry about dumping 
       def response_body(response_env)
+        unless response_env.response_body.is_a?(String)
+          begin
+            # if the response body is not a string, but JSON doesn't complain 
+            # about dumping whatever it is, go ahead and use it
+            JSON.dump([response_env.response_body])
+            return response_env.response_body
+          rescue
+            # otherwise return nil - don't know what to do with whatever this object is 
+            return nil
+          end
+        return response_env.response_body unless 
+
         # first try to change the string's encoding per the Content-Type header 
         content_type = response_env.response_headers['Content-Type']
         response_body = response_env.body.dup
