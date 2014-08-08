@@ -1,3 +1,9 @@
+# v0.6.2
+- ApiHammer::RequestLogger response body fix
+
+# v0.6.1
+- broken release, yanked
+
 # v0.6.0
 - ApiHammer::RailsOrSidekiqLogger
 
