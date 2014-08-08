@@ -1,3 +1,6 @@
+# v0.6.1
+- ApiHammer::RequestLogger response body fix
+
 # v0.6.0
 - ApiHammer::RailsOrSidekiqLogger
 
