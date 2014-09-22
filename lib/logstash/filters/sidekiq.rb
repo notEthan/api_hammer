@@ -19,6 +19,8 @@ class LogStash::Filters::Sidekiq < LogStash::Filters::Base
       event['sidekiq'] ||= {}
       event['sidekiq'].update(sidekiq_match.names.map { |name| {name => sidekiq_match[name]} }.inject({}, &:update))
 
+      event['@timestamp'] = Time.parse(sidekiq_match['time']).utc
+
       # extract more info from context 
       job_context = /\A\s*(?<job_name>.+) JID-(?<jid>\w+)\z/
       if context_match = sidekiq_match['context'].match(job_context)
