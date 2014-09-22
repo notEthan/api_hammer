@@ -27,6 +27,9 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
     if parsed_message
       if parsed_message.is_a?(Hash)
         event.to_hash.update(parsed_message)
+        if parsed_message['processing'].is_a?(Hash) && parsed_message['processing']['began_at'].is_a?(Integer)
+          event['@timestamp'] = Time.at(parsed_message['processing']['began_at']).utc
+        end
       else
         event['parsed_message'] = parsed_message
       end
