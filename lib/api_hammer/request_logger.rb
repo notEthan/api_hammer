@@ -73,6 +73,7 @@ module ApiHammer
       end.compact.inject({}, &:update)
 
       data = {
+        'request_role' => 'server',
         'request' => {
           'method' => request.request_method,
           'uri' => request_uri.normalize.to_s,

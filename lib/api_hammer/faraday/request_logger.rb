@@ -167,6 +167,7 @@ module ApiHammer
           end
           status_s = bold(send(status_color, response_env.status.to_s))
           data = {
+            'request_role' => 'client',
             'request' => {
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
