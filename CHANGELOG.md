@@ -1,3 +1,6 @@
+# v0.6.3
+- add request role to the request logging
+
 # v0.6.2
 - ApiHammer::RequestLogger response body fix
 
