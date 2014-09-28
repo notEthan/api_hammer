@@ -5,6 +5,7 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
   config_name "api_hammer_request"
   milestone 1
 
+  config :consume, :validate => :boolean, :default => true
   config :source, :validate => :string, :default => 'message'
 
   public
@@ -19,7 +20,8 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
     event.cancel if event[@source] =~ /#{human_request}/
 
     begin
-      parsed_message = JSON.parse(event['message'])
+      parsed_message = JSON.parse(event[@source])
+      event.remove(@source) if @consume
     rescue JSON::ParserError
       nil
     end
