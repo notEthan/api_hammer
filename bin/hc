@@ -94,6 +94,10 @@ end
 
 httpmethod, url, body = *ARGV
 
+unless url['://']
+  url = 'http://' + url
+end
+
 unless Faraday::Connection::METHODS.map{|m| m.to_s.downcase }.include?(httpmethod.downcase)
   abort "Unrecognized HTTP method given: #{httpmethod}\n\n" + opt_parser.help
 end
