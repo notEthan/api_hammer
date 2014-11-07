@@ -28,7 +28,8 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
         status = parsed_message['response'] && parsed_message['response']['status']
         request_method = parsed_message['request'] && parsed_message['request']['method']
         request_uri = parsed_message['request'] && parsed_message['request']['uri']
-        event[@source] = "#{dir} #{status} : #{request_method} #{request_uri} @ #{intense_cyan(now_s)}"
+        now_s = Time.now.strftime('%Y-%m-%d %H:%M:%S %Z')
+        event[@source] = "#{dir} #{status} : #{request_method} #{request_uri} @ #{now_s}"
       end
     rescue JSON::ParserError
       nil
