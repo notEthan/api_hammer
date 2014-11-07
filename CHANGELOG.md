@@ -1,5 +1,7 @@
-# v0.7.0
+# v0.7.1
 - logstash filters for sidekiq, activesupport tags, and of course ApiHammer's request logging 
+- use i18n for errors and add error_message to response
+- hc assumes http if no protocol specified
 
 # v0.6.3
 - add request role to the request logging
