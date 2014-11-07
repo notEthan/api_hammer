@@ -1,3 +1,6 @@
+# v0.7.0
+- logstash filters for sidekiq, activesupport tags, and of course ApiHammer's request logging 
+
 # v0.6.3
 - add request role to the request logging
 
