@@ -85,7 +85,11 @@ module ApiHammer::Rails
       attributes = find_attrs.map{|attr, val| "#{attr}: #{val}" }.join(", ")
       model_name = model.table_name
       model_name = model_name.singularize if model_name.respond_to?(:singularize)
-      halt_error(options[:status], {model_name => ["Unknown #{model_name}! #{attributes}"]})
+      message = I18n.t(:"errors.unknown_record_with_attributes", :default => "Unknown %{model_name}! %{attributes}",
+        :model_name => model_name,
+        :attributes => attributes
+      )
+      halt_error(options[:status], {model_name => [message]})
     end
     record
   end
