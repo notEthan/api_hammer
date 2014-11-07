@@ -44,7 +44,7 @@ module ApiHammer::Rails
   end
 
   # halt and render the given errors in the body on the 'errors' key 
-  def halt_error(status, errors, render_options = {})
+  def halt_error(status, errors, options = {})
     errors_as_json = errors.respond_to?(:as_json) ? errors.as_json : errors
     unless errors_as_json.is_a?(Hash)
       raise ArgumentError, "errors be an object representable in JSON as a Hash; got errors = #{errors.inspect}"
@@ -55,7 +55,19 @@ module ApiHammer::Rails
     unless errors_as_json.values.all? { |v| v.is_a?(Array) && v.all? { |e| e.is_a?(String) } }
       raise ArgumentError, "errors values must all be arrays of strings; got errors = #{errors.inspect}"
     end
-    halt(status, {'errors' => errors}, render_options)
+    render_options = options.dup.with_indifferent_access
+    body = {'errors' => errors}
+    error_message = render_options.delete('error_message') || begin
+      error_values = errors.values.inject([], &:+)
+      if error_values.size <= 1
+        error_values.first
+      else
+        # sentencify with periods 
+        error_values.map { |v| v =~ /\.\s*\z/ ? v : v + '.' }.join(' ')
+      end
+    end
+    body['error_message'] = error_message if error_message
+    halt(status, body, render_options)
   end
 
   # attempts to find and return the given model (an ActiveRecord::Base subclass) with the given attributes. 
@@ -73,7 +85,11 @@ module ApiHammer::Rails
       attributes = find_attrs.map{|attr, val| "#{attr}: #{val}" }.join(", ")
       model_name = model.table_name
       model_name = model_name.singularize if model_name.respond_to?(:singularize)
-      halt_error(options[:status], {model_name => ["Unknown #{model_name}! #{attributes}"]})
+      message = I18n.t(:"errors.unknown_record_with_attributes", :default => "Unknown %{model_name}! %{attributes}",
+        :model_name => model_name,
+        :attributes => attributes
+      )
+      halt_error(options[:status], {model_name => [message]})
     end
     record
   end
