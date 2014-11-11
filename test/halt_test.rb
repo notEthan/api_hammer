@@ -50,7 +50,7 @@ describe 'ApiHammer::Rails#halt' do
         end
       end
       haltex = assert_raises(ApiHammer::Halt) { FakeController.new.find_or_halt(model, {:id => 'anid'}) }
-      assert_equal({'errors' => {'record' => ['Unknown record! id: anid']}}, haltex.body)
+      assert_equal({'error_message' => 'Unknown record! id: anid', 'errors' => {'record' => ['Unknown record! id: anid']}}, haltex.body)
       assert_equal(404, haltex.render_options[:status])
     end
   end
