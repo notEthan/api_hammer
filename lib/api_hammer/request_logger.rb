@@ -15,6 +15,8 @@ module ApiHammer
   class RequestLogger < Rack::CommonLogger
     include Term::ANSIColor
 
+    LARGE_BODY_SIZE = 4096
+
     def call(env)
       began_at = Time.now
 
@@ -100,8 +102,8 @@ module ApiHammer
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
-        if (400..599).include?(status.to_i)
-          # only log bodies if there was an error (either client or server) 
+        if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
+          # log bodies if they are not large, or if there was an error (either client or server) 
           data[role]['body'] = body
         else
           # otherwise, log id and uuid fields 

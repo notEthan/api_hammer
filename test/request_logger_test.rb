@@ -22,23 +22,30 @@ describe ApiHammer::RequestLogger do
   end
 
   it 'logs id and uuid (json)' do
-    body = %q({"uuid": "theuuid", "foo_uuid": "thefoouuid", "id": "theid", "id_for_x": "theidforx", "bar.id": "thebarid", "baz-guid": "bazzz"})
+    body = %Q({"uuid": "theuuid", "foo_uuid": "thefoouuid", "id": "theid", "id_for_x": "theidforx", "bar.id": "thebarid", "baz-guid": "bazzz", "bigthing": "#{' ' * 4096}"})
     app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }, logger)
     app.call(Rack::MockRequest.env_for('/')).last.close
     assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid","baz-guid":"bazzz"}), logio.string)
   end
 
   it 'logs id and uuid (form encoded)' do
-    body = %q(uuid=theuuid&foo_uuid=thefoouuid&id=theid&id_for_x=theidforx&bar.id=thebarid&baz-guid=bazzz)
+    body = %Q(uuid=theuuid&foo_uuid=thefoouuid&id=theid&id_for_x=theidforx&bar.id=thebarid&baz-guid=bazzz&bigthing=#{' ' * 4096})
     app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/x-www-form-urlencoded; charset=UTF8'}, [body]] }, logger)
     app.call(Rack::MockRequest.env_for('/')).last.close
     assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid","baz-guid":"bazzz"}), logio.string)
   end
 
-  it 'logs request and response body on error' do
-    app = ApiHammer::RequestLogger.new(proc { |env| [400, {}, ['the_response_body']] }, logger)
+  it 'logs not-too-big request response bodies' do
+    app = ApiHammer::RequestLogger.new(proc { |env| [200, {}, ['the_response_body']] }, logger)
     app.call(Rack::MockRequest.env_for('/', :input => 'the_request_body')).last.close
-    assert_match(/"request":\{.*"body":"the_request_body"/, logio.string)
-    assert_match(/"response":\{.*"body":"the_response_body"/, logio.string)
+    assert_match(/"request":\{.*"body":"the_request_body/, logio.string)
+    assert_match(/"response":\{.*"body":"the_response_body/, logio.string)
+  end
+
+  it 'logs request and response body on error (even if big)' do
+    app = ApiHammer::RequestLogger.new(proc { |env| [400, {}, ["the_response_body #{' ' * 4096}"]] }, logger)
+    app.call(Rack::MockRequest.env_for('/', :input => "the_request_body #{' ' * 4096}")).last.close
+    assert_match(/"request":\{.*"body":"the_request_body/, logio.string)
+    assert_match(/"response":\{.*"body":"the_response_body/, logio.string)
   end
 end
