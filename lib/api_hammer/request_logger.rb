@@ -112,16 +112,16 @@ module ApiHammer
         end
       end
       response_body_string = response_body.to_enum.to_a.join('')
-      if (400..599).include?(status.to_i)
-        # only log bodies if there was an error (either client or server) 
-        data['request']['body'] = request_body
-        data['response']['body'] = response_body_string
-      else
-        # otherwise, log id and uuid fields 
-        request_body_ids = ids_from_body.call(request_body, request.content_type)
-        data['request']['body_ids'] = request_body_ids if request_body_ids && request_body_ids.any?
-        response_body_ids = ids_from_body.call(response_body_string, response.content_type)
-        data['response']['body_ids'] = response_body_ids if response_body_ids && response_body_ids.any?
+      body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
+      body_info.map do |(role, body, content_type)|
+        if (400..599).include?(status.to_i)
+          # only log bodies if there was an error (either client or server) 
+          data[role]['body'] = body
+        else
+          # otherwise, log id and uuid fields 
+          body_ids = ids_from_body.call(body, content_type)
+          data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
+        end
       end
       Thread.current['request_logger.info'] = nil
       json_data = JSON.dump(data)
