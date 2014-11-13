@@ -97,20 +97,6 @@ module ApiHammer
           'activesupport_tagged_logging_tags' => log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject { |k,v| v.nil? },
       }
-      ids_from_body = proc do |body_string, content_type|
-        media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
-        body_object = begin
-          if media_type == 'application/json'
-            JSON.parse(body_string) rescue nil
-          elsif media_type == 'application/x-www-form-urlencoded'
-            CGI.parse(body_string).map { |k, vs| {k => vs.last} }.inject({}, &:update)
-          end
-        end
-        if body_object.is_a?(Hash)
-          sep = /(?:\b|\W|_)/
-          body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
-        end
-      end
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
@@ -119,7 +105,19 @@ module ApiHammer
           data[role]['body'] = body
         else
           # otherwise, log id and uuid fields 
-          body_ids = ids_from_body.call(body, content_type)
+          media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
+          body_object = begin
+            if media_type == 'application/json'
+              JSON.parse(body) rescue nil
+            elsif media_type == 'application/x-www-form-urlencoded'
+              CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
+            end
+          end
+          if body_object.is_a?(Hash)
+            sep = /(?:\b|\W|_)/
+            body_ids = body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
+          end
+
           data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
         end
       end
