@@ -1,3 +1,6 @@
+# v0.8.0
+- log request and response bodies - not just IDs from them - if they aren't too big
+
 # v0.7.1
 - logstash filters for sidekiq, activesupport tags, and of course ApiHammer's request logging 
 - use i18n for errors and add error_message to response
