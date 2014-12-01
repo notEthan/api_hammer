@@ -180,7 +180,7 @@ module ApiHammer
               'body' => (response_body(response_env) if text?(response_env.response_headers['Content-Type'])),
             }.reject{|k,v| v.nil? },
             'processing' => {
-              'began_at' => began_at.utc.to_i,
+              'began_at' => began_at.utc.to_f,
               'duration' => now - began_at,
               'activesupport_tagged_logging_tags' => @log_tags,
             }.reject{|k,v| v.nil? },

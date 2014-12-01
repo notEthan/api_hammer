@@ -94,7 +94,7 @@ module ApiHammer
           'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
         }.reject { |k,v| v.nil? },
         'processing' => {
-          'began_at' => began_at.utc.to_i,
+          'began_at' => began_at.utc.to_f,
           'duration' => now - began_at,
           'activesupport_tagged_logging_tags' => log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject { |k,v| v.nil? },
