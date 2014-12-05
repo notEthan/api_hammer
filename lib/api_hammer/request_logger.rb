@@ -107,14 +107,7 @@ module ApiHammer
           data[role]['body'] = body
         else
           # otherwise, log id and uuid fields 
-          media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
-          body_object = begin
-            if media_type == 'application/json'
-              JSON.parse(body) rescue nil
-            elsif media_type == 'application/x-www-form-urlencoded'
-              CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
-            end
-          end
+          body_object = ApiHammer::ParsedBody.new(body, content_type).object
           sep = /(?:\b|\W|_)/
           hash_ids = proc do |hash|
             hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }

@@ -10,6 +10,7 @@ module ApiHammer
   autoload :RailsOrSidekiqLogger, 'api_hammer/rails_or_sidekiq_logger'
   autoload :FaradayOutputter, 'api_hammer/faraday/outputter'
   autoload :FaradayCurlVOutputter, 'api_hammer/faraday/outputter'
+  autoload :ParsedBody, 'api_hammer/parsed_body'
   module Faraday
     autoload :RequestLogger, 'api_hammer/faraday/request_logger'
   end
