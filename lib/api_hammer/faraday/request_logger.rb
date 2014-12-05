@@ -42,6 +42,33 @@ module ApiHammer
     def [](key)
       @attributes[key]
     end
+
+    def text?
+      # ordered hash by priority mapping types to binary or text
+      # regexps will have \A and \z added 
+      types = {
+        %r(image/.*) => :binary,
+        %r(audio/.*) => :binary,
+        %r(video/.*) => :binary,
+        %r(model/.*) => :binary,
+        %r(text/.*) => :text,
+        %r(message/.*) => :text,
+        'application/octet-stream' => :binary,
+        'application/ogg' => :binary,
+        'application/pdf' => :binary,
+        'application/postscript' => :binary,
+        'application/zip' => :binary,
+        'application/gzip' => :binary,
+      }
+      types.each do |match, type|
+        matched = match.is_a?(Regexp) ? media_type =~ %r(\A#{match.source}\z) : media_type == match
+        if matched
+          return type == :text
+        end
+      end
+      # fallback (unknown or not given) assume text
+      return true
+    end
   end
 
   module Faraday
@@ -115,35 +142,6 @@ module ApiHammer
         response_body
       end
 
-      def text?(content_type)
-        content_type_attrs = ContentTypeAttrs.new(content_type)
-        media_type = content_type_attrs.media_type
-        # ordered hash by priority mapping types to binary or text
-        # regexps will have \A and \z added 
-        types = {
-          %r(image/.*) => :binary,
-          %r(audio/.*) => :binary,
-          %r(video/.*) => :binary,
-          %r(model/.*) => :binary,
-          %r(text/.*) => :text,
-          %r(message/.*) => :text,
-          'application/octet-stream' => :binary,
-          'application/ogg' => :binary,
-          'application/pdf' => :binary,
-          'application/postscript' => :binary,
-          'application/zip' => :binary,
-          'application/gzip' => :binary,
-        }
-        types.each do |match, type|
-          matched = match.is_a?(Regexp) ? media_type =~ %r(\A#{match.source}\z) : media_type == match
-          if matched
-            return type == :text
-          end
-        end
-        # fallback (unknown or not given) assume text
-        return true
-      end
-
       def call(request_env)
         began_at = Time.now
 
@@ -172,12 +170,12 @@ module ApiHammer
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
               'headers' => request_env.request_headers,
-              'body' => (request_body if text?(request_env.request_headers['Content-Type'])),
+              'body' => (request_body if ContentTypeAttrs.new(request_env.request_headers['Content-Type']).text?),
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => response_env.status.to_s,
               'headers' => response_env.response_headers,
-              'body' => (response_body(response_env) if text?(response_env.response_headers['Content-Type'])),
+              'body' => (response_body(response_env) if ContentTypeAttrs.new(response_env.response_headers['Content-Type']).text?),
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_f,
