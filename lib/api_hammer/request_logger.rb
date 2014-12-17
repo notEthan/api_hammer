@@ -89,7 +89,7 @@ module ApiHammer
           'airbrake.error_id' => env['airbrake.error_id'],
         }.reject { |k,v| v.nil? },
         'response' => {
-          'status' => status,
+          'status' => status.to_s,
           'headers' => response_headers,
           'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
         }.reject { |k,v| v.nil? },

@@ -175,7 +175,7 @@ module ApiHammer
               'body' => (request_body if text?(request_env.request_headers['Content-Type'])),
             }.reject{|k,v| v.nil? },
             'response' => {
-              'status' => response_env.status,
+              'status' => response_env.status.to_s,
               'headers' => response_env.response_headers,
               'body' => (response_body(response_env) if text?(response_env.response_headers['Content-Type'])),
             }.reject{|k,v| v.nil? },
