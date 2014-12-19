@@ -1,3 +1,6 @@
+# v0.8.1
+- request log format tweaks
+
 # v0.8.0
 - log request and response bodies - not just IDs from them - if they aren't too big
 
