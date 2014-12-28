@@ -115,9 +115,14 @@ module ApiHammer
               CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
             end
           end
+          sep = /(?:\b|\W|_)/
+          hash_ids = proc do |hash|
+            hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
+          end
           if body_object.is_a?(Hash)
-            sep = /(?:\b|\W|_)/
-            body_ids = body_object.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
+            body_ids = hash_ids.call(body_object)
+          elsif body_object.is_a?(Array) && body_object.all? { |e| e.is_a?(Hash) }
+            body_ids = body_object.map(&hash_ids)
           end
 
           data[role]['body_ids'] = body_ids if body_ids && body_ids.any?

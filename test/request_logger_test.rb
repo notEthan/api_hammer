@@ -28,6 +28,13 @@ describe ApiHammer::RequestLogger do
     assert_match(%q("body_ids":{"uuid":"theuuid","foo_uuid":"thefoouuid","id":"theid","id_for_x":"theidforx","bar.id":"thebarid","baz-guid":"bazzz"}), logio.string)
   end
 
+  it 'logs id and uuid (json array)' do
+    body = %Q([{"uuid": "theuuid", "foo_uuid": "thefoouuid"}, {"id": "theid", "id_for_x": "theidforx"}, {"bar.id": "thebarid", "baz-guid": "bazzz", "bigthing": "#{' ' * 4096}"}])
+    app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }, logger)
+    app.call(Rack::MockRequest.env_for('/')).last.close
+    assert_match(%q("body_ids":[{"uuid":"theuuid","foo_uuid":"thefoouuid"},{"id":"theid","id_for_x":"theidforx"},{"bar.id":"thebarid","baz-guid":"bazzz"}]), logio.string)
+  end
+
   it 'logs id and uuid (form encoded)' do
     body = %Q(uuid=theuuid&foo_uuid=thefoouuid&id=theid&id_for_x=theidforx&bar.id=thebarid&baz-guid=bazzz&bigthing=#{' ' * 4096})
     app = ApiHammer::RequestLogger.new(proc { |env| [200, {"Content-Type" => 'application/x-www-form-urlencoded; charset=UTF8'}, [body]] }, logger)
