@@ -1,3 +1,8 @@
+# v0.9.0
+- rack request logger logs ids in arrays of hashes when logging ids
+- filtered logging of sensitive keys in bodies of requests (json and form encoded)
+- logstash filter for oauth headers and oauthenticator log entries
+
 # v0.8.1
 - request log format tweaks
 
