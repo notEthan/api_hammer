@@ -126,7 +126,7 @@ describe ApiHammer::RequestLogger do
   end
 
   describe 'filtering' do
-    describe 'json' do
+    describe 'json response' do
       it 'filters' do
         app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"pin": "foobar"}']] }
         conn = Faraday.new do |f|
@@ -155,4 +155,17 @@ describe ApiHammer::RequestLogger do
         assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
       end
     end
+
+    describe 'json request' do
+      it 'filters a json request' do
+        app = proc { |env| [200, {}, []] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.post '/', '[{"object": [{"pin": ["foobar"]}]}]', {'Content-Type' => 'application/json'}
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+      end
+    end
+  end
 end
