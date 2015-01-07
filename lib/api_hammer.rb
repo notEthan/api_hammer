@@ -16,6 +16,7 @@ module ApiHammer
   end
   module Filtration
     autoload :Json, 'api_hammer/filtration/json'
+    autoload :FormEncoded, 'api_hammer/filtration/form_encoded'
   end
 end
 
