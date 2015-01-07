@@ -15,14 +15,14 @@ module ApiHammer
       attr_reader :response_env
 
       # deal with the vagaries of getting the response body in a form which JSON 
-      # gem will not cry about dumping 
+      # gem will not cry about generating 
       def response_body
         instance_variable_defined?(:@response_body) ? @response_body : @response_body = catch(:response_body) do
           unless response_env.body.is_a?(String)
             begin
               # if the response body is not a string, but JSON doesn't complain 
               # about dumping whatever it is, go ahead and use it
-              JSON.dump([response_env.body])
+              JSON.generate([response_env.body])
               throw :response_body, response_env.body
             rescue
               # otherwise return nil - don't know what to do with whatever this object is 
@@ -51,7 +51,7 @@ module ApiHammer
             end
           end
           begin
-            JSON.dump([response_body])
+            JSON.generate([response_body])
           rescue Encoding::UndefinedConversionError
             # if updating by content-type didn't do it, try UTF8 since JSON wants that - but only 
             # if it seems to be valid utf8. 
@@ -60,7 +60,7 @@ module ApiHammer
             if try_utf8 && response_body.dup.force_encoding('UTF-8').valid_encoding?
               response_body.force_encoding('UTF-8')
             else
-              # I'm not sure if there is a way in this situation to get JSON gem to dump the 
+              # I'm not sure if there is a way in this situation to get JSON gem to generate the 
               # string correctly. fall back to an array of codepoints I guess? this is a weird 
               # solution but the best I've got for now. 
               response_body = response_body.codepoints.to_a
@@ -148,7 +148,7 @@ module ApiHammer
             }.reject{|k,v| v.nil? },
           }
 
-          json_data = JSON.dump(data)
+          json_data = JSON.generate(data)
           dolog = proc do
             now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
             @logger.info "#{bold(intense_magenta('>'))} #{status_s} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(now_s)}"
