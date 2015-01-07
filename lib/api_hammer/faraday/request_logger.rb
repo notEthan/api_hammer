@@ -178,18 +178,34 @@ module ApiHammer
             :white
           end
           status_s = bold(send(status_color, response_env.status.to_s))
+
+          filtered_request_body = request_body.dup if request_body
+          filtered_response_body = request.response_body.dup if request.response_body
+
+          if @options[:filter_keys]
+            body_info = [['request', filtered_request_body, request_env.request_headers], ['response', filtered_response_body, response_env.response_headers]]
+            body_info.map do |(role, body, headers)|
+              if body
+                media_type = ::Rack::Request.new({'CONTENT_TYPE' => headers['Content-Type']}).media_type
+                if media_type == 'application/json'
+                  body.replace(ApiHammer::Filtration::Json.new(body, @options.slice(:filter_keys)).filter)
+                end
+              end
+            end
+          end
+
           data = {
             'request_role' => 'client',
             'request' => {
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
               'headers' => request_env.request_headers,
-              'body' => (request_body if ContentTypeAttrs.new(request_env.request_headers['Content-Type']).text?),
+              'body' => (filtered_request_body if ContentTypeAttrs.new(request_env.request_headers['Content-Type']).text?),
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => response_env.status.to_s,
               'headers' => response_env.response_headers,
-              'body' => (request.response_body if ContentTypeAttrs.new(response_env.response_headers['Content-Type']).text?),
+              'body' => (filtered_response_body if ContentTypeAttrs.new(response_env.response_headers['Content-Type']).text?),
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_f,
