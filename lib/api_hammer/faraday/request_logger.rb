@@ -140,11 +140,14 @@ module ApiHammer
 
     # Faraday middleware for logging.
     #
-    # two lines:
+    # logs two lines:
     #
     # - an info line, colored prettily to show a brief summary of the request and response
     # - a debug line of json to record all relevant info. this is a lot of stuff jammed into one line, not 
     #   pretty, but informative.
+    #
+    # options:
+    # - :filter_keys defines keys whose values will be filtered out of the logging 
     class RequestLogger < ::Faraday::Middleware
       include Term::ANSIColor
 
