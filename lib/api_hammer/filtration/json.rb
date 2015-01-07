@@ -83,6 +83,8 @@ module ApiHammer
         result
       end
 
+      FILTERED_JSON = JSON.generate("[FILTERED]", :quirks_mode => true)
+
       def filter_object
         result = ''
         delim = false
@@ -97,7 +99,7 @@ module ApiHammer
             scan_result(result, IGNORE)
             unless (value = filter_value).equal? UNPARSED
               if [*@options[:filter_keys]].include?(parsed_key)
-                result << JSON.generate("[FILTERED]", :quirks_mode => true)
+                result << FILTERED_JSON
               else
                 result << value
               end
