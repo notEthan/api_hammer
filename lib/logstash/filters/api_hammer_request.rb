@@ -16,6 +16,7 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
   def filter(event)
     # discard the request status line for humans - always followed by json which we'll parse 
     col = /[\e\[\dm]*/.source
+    #               begin  direction     status        method      path             time      end
     human_request = [/\A/, /[<>]/, /\s/, /\d+/, / : /, /\w+/, / /, /[^\e]+/, / @ /, /[^\e]+/, /\z/].map(&:source).join(col)
     event.cancel if event[@source] =~ /#{human_request}/
 

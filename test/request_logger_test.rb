@@ -55,4 +55,71 @@ describe ApiHammer::RequestLogger do
     assert_match(/"request":\{.*"body":"the_request_body/, logio.string)
     assert_match(/"response":\{.*"body":"the_response_body/, logio.string)
   end
+
+  describe 'filtering' do
+    describe 'json response' do
+      it 'filters' do
+        body = %Q({"pin": "foobar"})
+        app = proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+
+        assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\"}"))
+      end
+      it 'filters nested' do
+        body = %Q({"object": {"pin": "foobar"}})
+        app = proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+
+        assert_includes(logio.string, %q("body":"{\"object\": {\"pin\": \"[FILTERED]\"}}"))
+      end
+      it 'filters in array' do
+        body = %Q([{"object": [{"pin": ["foobar"]}]}])
+        app = proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+      end
+    end
+
+    describe 'json request' do
+      it 'filters a json request' do
+        app = ApiHammer::RequestLogger.new(proc { |env| [200, {}, []] }, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/', :input => '[{"object": [{"pin": ["foobar"]}]}]', 'CONTENT_TYPE' => 'application/json')).last.close
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+      end
+    end
+
+    describe('form encoded response') do
+      it 'filters' do
+        app = proc { |env| [200, {"Content-Type" => 'application/x-www-form-urlencoded'}, ['pin=foobar']] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+        assert_includes(logio.string, %q("body":"pin=[FILTERED]"))
+      end
+      it 'filters nested' do
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[pin]=foobar']] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+        assert_includes(logio.string, %q("body":"object[pin]=[FILTERED]"))
+      end
+      it 'filters in array' do
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[][pin][]=foobar']] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/')).last.close
+        assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]"))
+      end
+    end
+
+    describe 'form encoded request' do
+      it 'filters a json request' do
+        app = proc { |env| [200, {}, []] }
+        app = ApiHammer::RequestLogger.new(app, logger, :filter_keys => 'pin')
+        app.call(Rack::MockRequest.env_for('/', :input => 'object[pin]=foobar', 'CONTENT_TYPE' => 'application/x-www-form-urlencoded')).last.close
+        assert_includes(logio.string, %q(object[pin]=[FILTERED]))
+      end
+    end
+  end
 end

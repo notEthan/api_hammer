@@ -103,7 +103,8 @@ describe ApiHammer::RequestLogger do
       conn.get '/'
       assert_match('[120,120,195]', logio.string)
     end
-
+  end
+  describe 'logging body by content-type' do
     {
       'application/octet-stream' => false,
       'image/png' => false,
@@ -121,6 +122,92 @@ describe ApiHammer::RequestLogger do
         end
         conn.get '/'
         assert(logio.string.include?('data go here') == istext)
+      end
+    end
+  end
+
+  describe 'filtering' do
+    describe 'json response' do
+      it 'filters' do
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"pin": "foobar"}']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\"}"))
+      end
+      it 'filters nested' do
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"object": {"pin": "foobar"}}']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"{\"object\": {\"pin\": \"[FILTERED]\"}}"))
+      end
+      it 'filters in array' do
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['[{"object": [{"pin": ["foobar"]}]}]']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+      end
+    end
+
+    describe 'json request' do
+      it 'filters a json request' do
+        app = proc { |env| [200, {}, []] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.post '/', '[{"object": [{"pin": ["foobar"]}]}]', {'Content-Type' => 'application/json'}
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+      end
+    end
+
+    describe 'form encoded response' do
+      it 'filters' do
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['pin=foobar']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"pin=[FILTERED]"))
+      end
+      it 'filters nested' do
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[pin]=foobar']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"object[pin]=[FILTERED]"))
+      end
+      it 'filters in array' do
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[][pin][]=foobar']] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.get '/'
+        assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]"))
+      end
+    end
+
+    describe 'form encoded request' do
+      it 'filters a json request' do
+        app = proc { |env| [200, {}, []] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.post '/', 'object[pin]=foobar', {'Content-Type' => 'application/x-www-form-urlencoded'}
+        assert_includes(logio.string, %q(object[pin]=[FILTERED]))
       end
     end
   end

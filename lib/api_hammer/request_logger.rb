@@ -17,6 +17,14 @@ module ApiHammer
 
     LARGE_BODY_SIZE = 4096
 
+    # options
+    # - :logger
+    # - :filter_keys
+    def initialize(app, logger, options={})
+      @options = options
+      super(app, logger)
+    end
+
     def call(env)
       began_at = Time.now
 
@@ -102,19 +110,13 @@ module ApiHammer
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
+        parsed_body = ApiHammer::ParsedBody.new(body, content_type)
         if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
           # log bodies if they are not large, or if there was an error (either client or server) 
-          data[role]['body'] = body
+          data[role]['body'] = parsed_body.filtered_body(@options.reject { |k,v| ![:filter_keys].include?(k) })
         else
           # otherwise, log id and uuid fields 
-          media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
-          body_object = begin
-            if media_type == 'application/json'
-              JSON.parse(body) rescue nil
-            elsif media_type == 'application/x-www-form-urlencoded'
-              CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
-            end
-          end
+          body_object = parsed_body.object
           sep = /(?:\b|\W|_)/
           hash_ids = proc do |hash|
             hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
