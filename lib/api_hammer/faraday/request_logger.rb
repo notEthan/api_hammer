@@ -189,6 +189,8 @@ module ApiHammer
                 media_type = ::Rack::Request.new({'CONTENT_TYPE' => headers['Content-Type']}).media_type
                 if media_type == 'application/json'
                   body.replace(ApiHammer::Filtration::Json.new(body, @options.slice(:filter_keys)).filter)
+                elsif media_type == 'application/x-www-form-urlencoded'
+                  body.replace(ApiHammer::Filtration::FormEncoded.new(body, @options.slice(:filter_keys)).filter)
                 end
               end
             end
