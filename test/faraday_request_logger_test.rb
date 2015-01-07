@@ -103,7 +103,8 @@ describe ApiHammer::RequestLogger do
       conn.get '/'
       assert_match('[120,120,195]', logio.string)
     end
-
+  end
+  describe 'logging body by content-type' do
     {
       'application/octet-stream' => false,
       'image/png' => false,
