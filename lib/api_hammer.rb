@@ -11,6 +11,7 @@ module ApiHammer
   autoload :FaradayOutputter, 'api_hammer/faraday/outputter'
   autoload :FaradayCurlVOutputter, 'api_hammer/faraday/outputter'
   autoload :ParsedBody, 'api_hammer/parsed_body'
+  autoload :ContentTypeAttrs, 'api_hammer/content_type_attrs'
   module Faraday
     autoload :RequestLogger, 'api_hammer/faraday/request_logger'
   end
