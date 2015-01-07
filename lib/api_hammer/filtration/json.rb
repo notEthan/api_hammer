@@ -1,3 +1,4 @@
+require 'json'
 require 'json/pure/parser'
 
 module ApiHammer
@@ -87,6 +88,7 @@ module ApiHammer
         delim = false
         until eos?
           if (string = filter_string) != UNPARSED
+            parsed_key = JSON.parse(string, :quirks_mode => true)
             result << string
             scan_result(result, IGNORE)
             unless scan_result(result, PAIR_DELIMITER)
@@ -94,7 +96,11 @@ module ApiHammer
             end
             scan_result(result, IGNORE)
             unless (value = filter_value).equal? UNPARSED
-              result << value
+              if [*@options[:filter_keys]].include?(parsed_key)
+                result << JSON.generate("[FILTERED]", :quirks_mode => true)
+              else
+                result << value
+              end
               delim = false
               scan_result(result, IGNORE)
               if scan_result(result, COLLECTION_DELIMITER)
