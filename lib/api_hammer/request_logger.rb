@@ -20,13 +20,9 @@ module ApiHammer
     # options
     # - :logger
     # - :filter_keys
-    def initialize(app, options)
-      if options.is_a?(Hash)
-        @options = options
-      else
-        @options = {:logger => options}
-      end
-      super(app, @options[:logger])
+    def initialize(app, logger, options={})
+      @options = options
+      super(app, logger)
     end
 
     def call(env)
