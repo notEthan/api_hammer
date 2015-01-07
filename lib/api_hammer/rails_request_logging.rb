@@ -51,7 +51,8 @@ module ApiHammer
 
       ApiHammer::RequestLogSubscriber.attach_to :action_controller
 
-      app.config.middleware.insert_after(::Rails::Rack::Logger, ApiHammer::RequestLogger, ::Rails.logger)
+      options = app.config.respond_to?(:api_hammer_request_logging_options) ? app.config.api_hammer_request_logging_options : {}
+      app.config.middleware.insert_after(::Rails::Rack::Logger, ApiHammer::RequestLogger, ::Rails.logger, options)
 
       ActionController::Base.send(:include, AddRequestToPayload)
     end
