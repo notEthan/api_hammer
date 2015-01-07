@@ -1,3 +1,5 @@
+require 'rack'
+
 module ApiHammer
   class ParsedBody
     attr_reader :body, :content_type, :media_type, :object
