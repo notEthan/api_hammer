@@ -19,5 +19,15 @@ module ApiHammer
         end
       end
     end
+
+    def filtered_body(options)
+      @filtered_body ||= begin
+        if media_type == 'application/json'
+          ApiHammer::Filtration::Json.new(body, options).filter
+        elsif media_type == 'application/x-www-form-urlencoded'
+          ApiHammer::Filtration::FormEncoded.new(body, options).filter
+        end
+      end
+    end
   end
 end

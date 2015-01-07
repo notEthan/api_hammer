@@ -186,12 +186,8 @@ module ApiHammer
             body_info = [['request', filtered_request_body, request_env.request_headers], ['response', filtered_response_body, response_env.response_headers]]
             body_info.map do |(role, body, headers)|
               if body
-                media_type = ::Rack::Request.new({'CONTENT_TYPE' => headers['Content-Type']}).media_type
-                if media_type == 'application/json'
-                  body.replace(ApiHammer::Filtration::Json.new(body, @options.slice(:filter_keys)).filter)
-                elsif media_type == 'application/x-www-form-urlencoded'
-                  body.replace(ApiHammer::Filtration::FormEncoded.new(body, @options.slice(:filter_keys)).filter)
-                end
+                filtered_body = ApiHammer::ParsedBody.new(body, headers['Content-Type']).filtered_body(@options.slice(:filter_keys))
+                body.replace(filtered_body) if filtered_body
               end
             end
           end
