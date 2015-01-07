@@ -114,12 +114,13 @@ module ApiHammer
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
+        parsed_body = ApiHammer::ParsedBody.new(body, content_type)
         if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
           # log bodies if they are not large, or if there was an error (either client or server) 
-          data[role]['body'] = body
+          data[role]['body'] = parsed_body.filtered_body(@options.reject { |k,v| ![:filter_keys].include?(k) })
         else
           # otherwise, log id and uuid fields 
-          body_object = ApiHammer::ParsedBody.new(body, content_type).object
+          body_object = parsed_body.object
           sep = /(?:\b|\W|_)/
           hash_ids = proc do |hash|
             hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
