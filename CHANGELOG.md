@@ -1,3 +1,6 @@
+# v0.9.1
+- recognize `app.config.api_hammer_request_logging_options` for request logger options
+
 # v0.9.0
 - rack request logger logs ids in arrays of hashes when logging ids
 - filtered logging of sensitive keys in bodies of requests (json and form encoded)
