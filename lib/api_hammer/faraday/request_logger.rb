@@ -122,8 +122,8 @@ module ApiHammer
             body_info = [['request', filtered_request_body, request_env.request_headers], ['response', filtered_response_body, response_env.response_headers]]
             body_info.map do |(role, body, headers)|
               if body
-                filtered_body = ApiHammer::ParsedBody.new(body, headers['Content-Type']).filtered_body(@options.slice(:filter_keys))
-                body.replace(filtered_body) if filtered_body
+                parsed_body = ApiHammer::ParsedBody.new(body, headers['Content-Type'])
+                body.replace(parsed_body.filtered_body(@options.slice(:filter_keys)))
               end
             end
           end
