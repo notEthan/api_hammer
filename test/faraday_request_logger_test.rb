@@ -168,7 +168,7 @@ describe ApiHammer::RequestLogger do
       end
     end
 
-    describe 'form encoded' do
+    describe 'form encoded response' do
       it 'filters' do
         app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['pin=foobar']] }
         conn = Faraday.new do |f|
@@ -195,6 +195,18 @@ describe ApiHammer::RequestLogger do
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]"))
+      end
+    end
+
+    describe 'form encoded request' do
+      it 'filters a json request' do
+        app = proc { |env| [200, {}, []] }
+        conn = Faraday.new do |f|
+          f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
+          f.use Faraday::Adapter::Rack, app
+        end
+        conn.post '/', 'object[pin]=foobar', {'Content-Type' => 'application/x-www-form-urlencoded'}
+        assert_includes(logio.string, %q(object[pin]=[FILTERED]))
       end
     end
   end
