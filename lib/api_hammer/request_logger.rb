@@ -17,6 +17,18 @@ module ApiHammer
 
     LARGE_BODY_SIZE = 4096
 
+    # options
+    # - :logger
+    # - :filter_keys
+    def initialize(app, options)
+      if options.is_a?(Hash)
+        @options = options
+      else
+        @options = {:logger => options}
+      end
+      super(app, @options[:logger])
+    end
+
     def call(env)
       began_at = Time.now
 
