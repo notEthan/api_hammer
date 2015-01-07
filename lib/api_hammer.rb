@@ -14,6 +14,9 @@ module ApiHammer
   module Faraday
     autoload :RequestLogger, 'api_hammer/faraday/request_logger'
   end
+  module Filtration
+    autoload :Json, 'api_hammer/filtration/json'
+  end
 end
 
 require 'faraday'
