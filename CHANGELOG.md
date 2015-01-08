@@ -1,3 +1,6 @@
+# v0.9.2
+- bugfix form encoded filtering
+
 # v0.9.1
 - recognize `app.config.api_hammer_request_logging_options` for request logger options
 
