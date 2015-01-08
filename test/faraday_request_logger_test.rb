@@ -129,31 +129,31 @@ describe ApiHammer::RequestLogger do
   describe 'filtering' do
     describe 'json response' do
       it 'filters' do
-        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"pin": "foobar"}']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"pin": "foobar", "bar": "baz"}']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\"}"))
+        assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\", \"bar\": \"baz\"}"))
       end
       it 'filters nested' do
-        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"object": {"pin": "foobar"}}']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"object": {"pin": "foobar"}, "bar": "baz"}']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"{\"object\": {\"pin\": \"[FILTERED]\"}}"))
+        assert_includes(logio.string, %q("body":"{\"object\": {\"pin\": \"[FILTERED]\"}, \"bar\": \"baz\"}"))
       end
       it 'filters in array' do
-        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['[{"object": [{"pin": ["foobar"]}]}]']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['[{"object": [{"pin": ["foobar"]}], "bar": "baz"}]']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}], \"bar\": \"baz\"}]"))
       end
     end
 
@@ -164,38 +164,38 @@ describe ApiHammer::RequestLogger do
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
-        conn.post '/', '[{"object": [{"pin": ["foobar"]}]}]', {'Content-Type' => 'application/json'}
-        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}]}]"))
+        conn.post '/', '[{"object": [{"pin": ["foobar"]}], "bar": "baz"}]', {'Content-Type' => 'application/json'}
+        assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}], \"bar\": \"baz\"}]"))
       end
     end
 
     describe 'form encoded response' do
       it 'filters' do
-        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['pin=foobar']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['pin=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"pin=[FILTERED]"))
+        assert_includes(logio.string, %q("body":"pin=[FILTERED]&bar=baz"))
       end
       it 'filters nested' do
-        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[pin]=foobar']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[pin]=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"object[pin]=[FILTERED]"))
+        assert_includes(logio.string, %q("body":"object[pin]=[FILTERED]&bar=baz"))
       end
       it 'filters in array' do
-        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[][pin][]=foobar']] }
+        app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[][pin][]=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
         conn.get '/'
-        assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]"))
+        assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]&bar=baz"))
       end
     end
 
@@ -206,8 +206,8 @@ describe ApiHammer::RequestLogger do
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
           f.use Faraday::Adapter::Rack, app
         end
-        conn.post '/', 'object[pin]=foobar', {'Content-Type' => 'application/x-www-form-urlencoded'}
-        assert_includes(logio.string, %q(object[pin]=[FILTERED]))
+        conn.post '/', 'object[pin]=foobar&bar=baz', {'Content-Type' => 'application/x-www-form-urlencoded'}
+        assert_includes(logio.string, %q(object[pin]=[FILTERED]&bar=baz))
       end
     end
   end
