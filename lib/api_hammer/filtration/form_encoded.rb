@@ -19,7 +19,7 @@ module ApiHammer
             kv = ss[0]
             key, value = kv.split('=', 2)
             parsed_key = CGI::unescape(key)
-            if [*@options[:filter_keys]].any? { |fk| parsed_key =~ /(\A|[\[\]])#{Regexp.escape(parsed_key)}(\z|[\[\]])/ }
+            if [*@options[:filter_keys]].any? { |fk| parsed_key =~ /(\A|[\[\]])#{Regexp.escape(fk)}(\z|[\[\]])/ }
               filtered << [key, '[FILTERED]'].join('=')
             else
               filtered << ss[0]
