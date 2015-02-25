@@ -1,3 +1,5 @@
+proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.call(File.expand_path(File.dirname(__FILE__)))
+
 require 'api_hammer/version'
 
 module ApiHammer
