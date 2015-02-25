@@ -14,13 +14,7 @@ Gem::Specification.new do |spec|
   spec.homepage      = 'https://github.com/notEthan/api_hammer'
   spec.license       = 'MIT'
 
-  spec.files         = `git ls-files -z lib bin`.split("\x0") + [
-    '.yardopts',
-    'LICENSE.txt',
-    'CHANGELOG.md',
-    'README.md',
-    'Rakefile.rb',
-  ]
+  spec.files         = `git ls-files -z`.split("\x0") - ['.gitignore']
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.test_files    = `git ls-files -z test`.split("\x0") + [
     '.simplecov',
