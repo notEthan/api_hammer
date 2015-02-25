@@ -1,3 +1,6 @@
+#v0.10.0
+- JsonScriptEscapeHelper
+
 # v0.9.2
 - bugfix form encoded filtering
 
