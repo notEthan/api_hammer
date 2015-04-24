@@ -36,20 +36,7 @@ module ApiHammer
       log_tags = Thread.current[:activesupport_tagged_logging_tags]
       log_tags = log_tags.dup if log_tags && log_tags.any?
 
-      status, response_headers, response_body = @app.call(env)
-      response_headers = ::Rack::Utils::HeaderHash.new(response_headers)
-      body_proxy = ::Rack::BodyProxy.new(response_body) do
-        log(env, request_body, status, response_headers, response_body, began_at, log_tags)
-      end
-      [status, response_headers, body_proxy]
-    end
-
-    def log(env, request_body, status, response_headers, response_body, began_at, log_tags)
-      now = Time.now
-
       request = Rack::Request.new(env)
-      response = Rack::Response.new('', status, response_headers)
-
       request_uri = Addressable::URI.new(
         :scheme => request.scheme,
         :host => request.host,
@@ -57,6 +44,21 @@ module ApiHammer
         :path => request.path,
         :query => (request.query_string unless request.query_string.empty?)
       )
+
+      status, response_headers, response_body = @app.call(env)
+      response_headers = ::Rack::Utils::HeaderHash.new(response_headers)
+      body_proxy = ::Rack::BodyProxy.new(response_body) do
+        log(env, request_uri, request_body, status, response_headers, response_body, began_at, log_tags)
+      end
+      [status, response_headers, body_proxy]
+    end
+
+    def log(env, request_uri, request_body, status, response_headers, response_body, began_at, log_tags)
+      now = Time.now
+
+      request = Rack::Request.new(env)
+      response = Rack::Response.new('', status, response_headers)
+
       status_color = case status.to_i
       when 200..299
         :intense_green
