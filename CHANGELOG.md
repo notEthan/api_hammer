@@ -1,4 +1,7 @@
-#v0.10.0
+# v0.10.1
+- Rack RequestLogger works around rails' exception app path mangling
+
+# v0.10.0
 - JsonScriptEscapeHelper
 
 # v0.9.2
