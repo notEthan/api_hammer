@@ -28,6 +28,17 @@ module ApiHammer
       info.update(event.payload.slice(:controller, :action, :exception, :format, :formats, :view_runtime, :db_runtime))
       info.update(:transaction_id => event.transaction_id)
       info.update(event.payload['request_logger.info']) if event.payload['request_logger.info']
+      # if there is an exception, ActiveSupport saves the class and message but not backtrace. but this 
+      # gets called from an ensure block, so $! is set - retrieve the backtrace from that.
+      if $!
+        # this may be paranoid - it should always be the case that what gets set in :exception is the 
+        # same as the current error, but just in case it's not, we'll put the current error somewhere else
+        if info[:exception] == [$!.class.to_s, $!.message]
+          info[:exception] += [$!.backtrace]
+        else
+          info[:current_exception] = [$!.class.to_s, $!.message, $!.backtrace]
+        end
+      end
     end
   end
 end
