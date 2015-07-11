@@ -1,3 +1,6 @@
+# v0.10.2
+- rails request logging logs exception backtrace
+
 # v0.10.1
 - Rack RequestLogger works around rails' exception app path mangling
 
