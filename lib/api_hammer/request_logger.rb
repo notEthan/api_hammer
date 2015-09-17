@@ -113,23 +113,26 @@ module ApiHammer
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
         parsed_body = ApiHammer::ParsedBody.new(body, content_type)
-        if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
-          # log bodies if they are not large, or if there was an error (either client or server) 
-          data[role]['body'] = parsed_body.filtered_body(@options.reject { |k,v| ![:filter_keys].include?(k) })
-        else
-          # otherwise, log id and uuid fields 
-          body_object = parsed_body.object
-          sep = /(?:\b|\W|_)/
-          hash_ids = proc do |hash|
-            hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
-          end
-          if body_object.is_a?(Hash)
-            body_ids = hash_ids.call(body_object)
-          elsif body_object.is_a?(Array) && body_object.all? { |e| e.is_a?(Hash) }
-            body_ids = body_object.map(&hash_ids)
-          end
+        content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
+        if content_type_attrs.text?
+          if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
+            # log bodies if they are not large, or if there was an error (either client or server) 
+            data[role]['body'] = parsed_body.filtered_body(@options.reject { |k,v| ![:filter_keys].include?(k) })
+          else
+            # otherwise, log id and uuid fields 
+            body_object = parsed_body.object
+            sep = /(?:\b|\W|_)/
+            hash_ids = proc do |hash|
+              hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
+            end
+            if body_object.is_a?(Hash)
+              body_ids = hash_ids.call(body_object)
+            elsif body_object.is_a?(Array) && body_object.all? { |e| e.is_a?(Hash) }
+              body_ids = body_object.map(&hash_ids)
+            end
 
-          data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
+            data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
+          end
         end
       end
       Thread.current['request_logger.info'] = nil
