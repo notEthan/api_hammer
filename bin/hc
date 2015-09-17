@@ -44,6 +44,9 @@ opt_parser = OptionParser.new do |opts|
   opts.on("-t", "--content-type CONTENT-TYPE", "Sets the Content-Type header of the request. This defaults to application/json if a body is included.") do |v|
     $options[:headers]['Content-Type'.downcase] = v
   end
+  opts.on("-o", "--output OUTPUT", "write response to file") do |v|
+    $options[:output] = v
+  end
   opts.on("--oauth-token TOKEN", "OAuth 1.0 token") do |token|
     $oauth[:token] = token
   end
@@ -116,3 +119,9 @@ end
 # OH LOOK IT'S FINALLY ACTUALLY CONNECTING TO SOMETHING
 
 response = connection.run_request(httpmethod.downcase.to_sym, url, body, headers)
+
+if $options[:output]
+  File.open($options[:output], 'wb') do |f|
+    f.write(response.body)
+  end
+end
