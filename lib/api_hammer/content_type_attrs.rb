@@ -47,12 +47,19 @@ module ApiHammer
         %r(model/.*) => :binary,
         %r(text/.*) => :text,
         %r(message/.*) => :text,
+        %r(application/(.+\+)?json) => :text,
+        %r(application/(.+\+)?xml) => :text,
+        %r(model/(.+\+)?xml) => :text,
+        'application/x-www-form-urlencoded' => :text,
+        'application/javascript' => :text,
+        'application/ecmascript' => :text,
         'application/octet-stream' => :binary,
         'application/ogg' => :binary,
         'application/pdf' => :binary,
         'application/postscript' => :binary,
         'application/zip' => :binary,
         'application/gzip' => :binary,
+        'application/vnd.apple.pkpass' => :binary,
       }
       types.each do |match, type|
         matched = match.is_a?(Regexp) ? media_type =~ %r(\A#{match.source}\z) : media_type == match
@@ -60,8 +67,8 @@ module ApiHammer
           return type == :text
         end
       end
-      # fallback (unknown or not given) assume text
-      return true
+      # fallback (unknown or not given) assume binary
+      return false
     end
   end
 end
