@@ -1,5 +1,6 @@
 require 'faraday'
 require 'rack'
+require 'api_hammer'
 
 module ApiHammer
   # outputs the response body to the given logger or output device (defaulting to STDOUT) 
@@ -54,6 +55,8 @@ module ApiHammer
     color :response_status, :bold, :green
     color :response_header
     color :response_blankline, :intense_green, :bold
+
+    color :omitted_body, :intense_yellow
 
     def call(request_env)
       puts "#{info('*')} #{info_body("connect to #{request_env[:url].host} on port #{request_env[:url].port}")}"
@@ -125,23 +128,27 @@ module ApiHammer
     # - formatted prettily if #pretty? is true
     def alter_body_by_content_type(body, content_type)
       return body unless body.is_a?(String)
-      media_type = ::Rack::Request.new({'CONTENT_TYPE' => content_type}).media_type
-      if pretty?
-        case media_type
-        when 'application/json'
-          require 'json'
-          begin
-            body = JSON.pretty_generate(JSON.parse(body))
-          rescue JSON::ParserError
+      content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
+      if content_type_attrs.text?
+        if pretty?
+          case content_type_attrs.media_type
+          when 'application/json'
+            require 'json'
+            begin
+              body = JSON.pretty_generate(JSON.parse(body))
+            rescue JSON::ParserError
+            end
           end
         end
-      end
-      if color?
-        coderay_scanner = CodeRayForMediaTypes.reject{|k,v| !v.any?{|type| type === media_type} }.keys.first
-        if coderay_scanner
-          require 'coderay'
-          body = CodeRay.scan(body, coderay_scanner).encode(:terminal)
+        if color?
+          coderay_scanner = CodeRayForMediaTypes.reject{|k,v| !v.any?{|type| type === content_type_attrs.media_type} }.keys.first
+          if coderay_scanner
+            require 'coderay'
+            body = CodeRay.scan(body, coderay_scanner).encode(:terminal)
+          end
         end
+      else
+        body = omitted_body("[[omitted binary body (size = #{body.size})]]")
       end
       body
     end
