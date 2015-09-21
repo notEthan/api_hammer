@@ -27,7 +27,7 @@ module ApiHammer
       end
     end
 
-    attr_reader :media_type
+    attr_reader :content_type, :media_type
 
     def parsed?
       @parsed
@@ -67,8 +67,13 @@ module ApiHammer
           return type == :text
         end
       end
-      # fallback (unknown or not given) assume binary
-      return false
+      # fallback (unknown or not given) assume that unknown content types are binary but omitted 
+      # content-type means text
+      if content_type && content_type =~ /\S/
+        return false
+      else
+        return true
+      end
     end
   end
 end
