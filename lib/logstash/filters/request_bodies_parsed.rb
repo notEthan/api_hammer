@@ -21,7 +21,7 @@ class LogStash::Filters::RequestBodiesParsed < LogStash::Filters::Base
         if event[re]['headers'].is_a?(Hash) && !content_type
           _, content_type = event[re]['headers'].detect { |(k,_)| k =~ /\Acontent.type\z/i }
         end
-        parsed_body = ApiHammer::ParsedBody.new(event[re]['body'], content_type)
+        parsed_body = ApiHammer::Body.new(event[re]['body'], content_type)
         event[re]['body_parsed'] = parsed_body.object if parsed_body.object
       end
     end

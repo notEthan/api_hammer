@@ -112,12 +112,12 @@ module ApiHammer
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
       body_info.map do |(role, body, content_type)|
-        parsed_body = ApiHammer::ParsedBody.new(body, content_type)
+        parsed_body = ApiHammer::Body.new(body, content_type)
         content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
         if content_type_attrs.text?
           if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
             # log bodies if they are not large, or if there was an error (either client or server) 
-            data[role]['body'] = parsed_body.filtered_body(@options.reject { |k,v| ![:filter_keys].include?(k) })
+            data[role]['body'] = parsed_body.jsonifiable.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).body
           else
             # otherwise, log id and uuid fields 
             body_object = parsed_body.object
