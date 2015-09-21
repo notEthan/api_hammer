@@ -1,3 +1,6 @@
+# v0.11.0
+- improved handling of text and binary bodies in logging middleware and hc
+
 # v0.10.2
 - rails request logging logs exception backtrace
 
