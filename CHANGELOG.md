@@ -1,3 +1,6 @@
+# v0.11.1
+- bugfix trailingnewline
+
 # v0.11.0
 - improved handling of text and binary bodies in logging middleware and hc
 
