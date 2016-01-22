@@ -1,3 +1,7 @@
+# v0.12.0
+- hc --input option
+- rails 4 support for unmunged_request_params
+
 # v0.11.1
 - bugfix trailingnewline
 
