@@ -7,10 +7,19 @@ module ApiHammer::Rails
     # TODO when we are on a rails which has ActionDispatch::Request::Utils.perform_deep_munge, use that instead
     # of clobbering methods
     @unmunged_params ||= Thread.exclusive do
-      unless ActionDispatch::Request.method_defined?(:real_deep_munge)
-        ActionDispatch::Request.send(:alias_method, :real_deep_munge, :deep_munge)
+      if ActionDispatch::Request.const_defined?(:Utils) && ActionDispatch::Request::Utils.respond_to?(:deep_munge)
+        # rails 4
+        deep_munge_owner = (class << ActionDispatch::Request::Utils; self; end)
+      else
+        # rails 3
+        deep_munge_owner = ActionDispatch::Request
       end
-      ActionDispatch::Request.send(:define_method, :deep_munge) { |hash| hash }
+
+      unless deep_munge_owner.method_defined?(:real_deep_munge)
+        deep_munge_owner.send(:alias_method, :real_deep_munge, :deep_munge)
+      end
+      deep_munge_owner.send(:define_method, :deep_munge) { |hash| hash }
+
       begin
         unmunged_params = nil
         newenv = request.env.merge('action_dispatch.request.request_parameters' => nil)
@@ -19,7 +28,7 @@ module ApiHammer::Rails
         end).call(newenv)
         unmunged_params || ActionDispatch::Request.new(newenv).request_parameters
       ensure
-        ActionDispatch::Request.send(:alias_method, :deep_munge, :real_deep_munge)
+        deep_munge_owner.send(:alias_method, :deep_munge, :real_deep_munge)
       end
     end
   end
