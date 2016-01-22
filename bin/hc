@@ -7,6 +7,7 @@ require 'rubygems'
 require 'faraday'
 require 'logger'
 require 'yaml'
+require 'pathname'
 
 require 'api_hammer/faraday/outputter'
 require 'api_hammer/version'
@@ -46,6 +47,9 @@ opt_parser = OptionParser.new do |opts|
   end
   opts.on("-o", "--output OUTPUT", "write response to file") do |v|
     $options[:output] = v
+  end
+  opts.on("--input INPUT", "read request body from file") do |v|
+    $options[:input] = v
   end
   opts.on("--oauth-token TOKEN", "OAuth 1.0 token") do |token|
     $oauth[:token] = token
@@ -96,6 +100,12 @@ connection = Faraday.new(faraday_options) do |builder|
 end
 
 httpmethod, url, body = *ARGV
+
+if $options[:input] == '-'
+  body = STDIN.read
+elsif $options[:input]
+  body = Pathname.new($options[:input]).read
+end
 
 unless url['://']
   url = 'http://' + url
