@@ -1,3 +1,10 @@
+# v0.13.0
+- ApiHammer::Sinatra, with some useful sinatra methods
+  - #halt, #halt_error, #halt_unprocessable_entity and friends
+  - a more api-appropriate 404 for unknown routes
+  - parsing request bodies in accordance with content-type, with appropriate errors
+  - formatting response bodies, minding accept headers, with appropriate errors
+
 # v0.12.0
 - hc --input option
 - rails 4 support for unmunged_request_params
