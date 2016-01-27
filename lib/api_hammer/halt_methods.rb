@@ -1,100 +1,56 @@
-# the contents of this file are to let you halt a controller in its processing without having to have a 
-# return in the actual action. this lets helper methods which do things like parameter validation halt.
-#
-# it is desgined to function similarly to Sinatra's handling of throw(:halt), but is based around exceptions 
-# because rails doesn't catch anything, just rescues. 
-
 module ApiHammer
-  # an exception raised to stop processing an action and render the body given as the 'body' argument 
-  # (which is expected to be a JSON-able object)
-  class Halt < StandardError
-    def initialize(message, body, render_options={})
-      super(message)
-      @body = body
-      @render_options = render_options
-    end
-
-    attr_reader :body, :render_options
-  end
-end
-
-module ApiHammer::Rails
-  unless instance_variables.any? { |iv| iv.to_s == '@halt_included' }
-    @halt_included = proc do |controller_class|
-      controller_class.send(:rescue_from, ApiHammer::Halt, :with => :handle_halt)
-    end
-    (@on_included ||= Set.new) << @halt_included
-  end
-
-  # handle a raised ApiHammer::Halt or subclass and render it
-  def handle_halt(halt)
-    render_options = halt.render_options ? halt.render_options.dup : {}
-    # rocket pants does not have a render method, just render_json 
-    if respond_to?(:render_json, true)
-      render_json(halt.body || {}, render_options)
-    else
-      render_options[:json] = halt.body || {}
-      render(render_options)
-    end
-  end
-
-  # halt and render the given body 
-  def halt(status, body, render_options = {})
-    raise(ApiHammer::Halt.new(body.inspect, body, render_options.merge(:status => status)))
-  end
-
-  # halt and render the given errors in the body on the 'errors' key 
-  def halt_error(status, errors, options = {})
-    errors_as_json = errors.respond_to?(:as_json) ? errors.as_json : errors
-    unless errors_as_json.is_a?(Hash)
-      raise ArgumentError, "errors be an object representable in JSON as a Hash; got errors = #{errors.inspect}"
-    end
-    unless errors_as_json.keys.all? { |k| k.is_a?(String) || k.is_a?(Symbol) }
-      raise ArgumentError, "errors keys must all be string or symbol; got errors = #{errors.inspect}"
-    end
-    unless errors_as_json.values.all? { |v| v.is_a?(Array) && v.all? { |e| e.is_a?(String) } }
-      raise ArgumentError, "errors values must all be arrays of strings; got errors = #{errors.inspect}"
-    end
-    render_options = options.dup.with_indifferent_access
-    body = {'errors' => errors}
-    error_message = render_options.delete('error_message') || begin
-      error_values = errors.values.inject([], &:+)
-      if error_values.size <= 1
-        error_values.first
-      else
-        # sentencify with periods 
-        error_values.map { |v| v =~ /\.\s*\z/ ? v : v + '.' }.join(' ')
-      end
-    end
-    body['error_message'] = error_message if error_message
-    halt(status, body, render_options)
-  end
-
-  # attempts to find and return the given model (an ActiveRecord::Base subclass) with the given attributes. 
-  # halts with 404 (does not return) if that fails. options[:status] may specify a different status if that 
-  # is required.
-  #
-  # e.g.:
-  #
-  #     find_or_halt(User, :email => 'user@example.com')
-  #
-  def find_or_halt(model, find_attrs, options={})
-    options = {:status => 404}.merge(options)
-    record = model.where(find_attrs).first
-    unless record
-      attributes = find_attrs.map{|attr, val| "#{attr}: #{val}" }.join(", ")
-      model_name = model.table_name
-      model_name = model_name.singularize if model_name.respond_to?(:singularize)
-      message = I18n.t(:"errors.unknown_record_with_attributes", :default => "Unknown %{model_name}! %{attributes}",
-        :model_name => model_name,
-        :attributes => attributes
-      )
-      halt_error(options[:status], {model_name => [message]})
-    end
-    record
-  end
-
   module HaltMethods
+    # halt and render the given errors in the body on the 'errors' key 
+    def halt_error(status, errors, options = {})
+      errors_as_json = errors.respond_to?(:as_json) ? errors.as_json : errors
+      unless errors_as_json.is_a?(Hash)
+        raise ArgumentError, "errors be an object representable in JSON as a Hash; got errors = #{errors.inspect}"
+      end
+      unless errors_as_json.keys.all? { |k| k.is_a?(String) || k.is_a?(Symbol) }
+        raise ArgumentError, "errors keys must all be string or symbol; got errors = #{errors.inspect}"
+      end
+      unless errors_as_json.values.all? { |v| v.is_a?(Array) && v.all? { |e| e.is_a?(String) } }
+        raise ArgumentError, "errors values must all be arrays of strings; got errors = #{errors.inspect}"
+      end
+      halt_options = options.dup.with_indifferent_access
+      body = {'errors' => errors}
+      error_message = halt_options.delete('error_message') || begin
+        error_values = errors.values.inject([], &:+)
+        if error_values.size <= 1
+          error_values.first
+        else
+          # sentencify with periods 
+          error_values.map { |v| v =~ /\.\s*\z/ ? v : v + '.' }.join(' ')
+        end
+      end
+      body['error_message'] = error_message if error_message
+      halt(status, body, halt_options)
+    end
+
+    # attempts to find and return the given model (an ActiveRecord::Base subclass) with the given attributes. 
+    # halts with 404 (does not return) if that fails. options[:status] may specify a different status if that 
+    # is required.
+    #
+    # e.g.:
+    #
+    #     find_or_halt(User, :email => 'user@example.com')
+    #
+    def find_or_halt(model, find_attrs, options={})
+      options = {:status => 404}.merge(options)
+      record = model.where(find_attrs).first
+      unless record
+        attributes = find_attrs.map { |attr, val| "#{attr}: #{val}" }.join(", ")
+        model_name = model.table_name
+        model_name = model_name.singularize if model_name.respond_to?(:singularize)
+        message = I18n.t(:"errors.unknown_record_with_attributes", :default => "Unknown %{model_name}! %{attributes}",
+          :model_name => model_name,
+          :attributes => attributes
+        )
+        halt_error(options[:status], {model_name => [message]})
+      end
+      record
+    end
+
     # halt with status 200 OK, responding with the given body object 
     def halt_ok(body, render_options = {})
       halt(200, body, render_options)
@@ -444,6 +400,4 @@ end.compact.join)
 
 =end
   end
-
-  include HaltMethods
 end

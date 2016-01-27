@@ -1,11 +1,13 @@
-require 'api_hammer/halt'
-require 'api_hammer/check_required_params'
-require 'api_hammer/unmunged_request_params'
+require 'api_hammer/rails/halt'
+require 'api_hammer/rails/check_required_params'
+require 'api_hammer/rails/unmunged_request_params'
 
-module ApiHammer::Rails
-  def self.included(klass)
-    (@on_included || []).each do |included_proc|
-      included_proc.call(klass)
+module ApiHammer
+  module Rails
+    def self.included(klass)
+      (@on_included || []).each do |included_proc|
+        included_proc.call(klass)
+      end
     end
   end
 end
