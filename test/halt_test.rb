@@ -14,19 +14,19 @@ class FakeController
 end
 
 describe 'ApiHammer::Rails#halt' do
-  it 'raises ApiHammer::Halt' do
-    haltex = assert_raises(ApiHammer::Halt) { FakeController.new.halt(200, {}) }
+  it 'raises ApiHammer::Rails::Halt' do
+    haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.halt(200, {}) }
     assert_equal({}, haltex.body)
     assert_equal(200, haltex.render_options[:status])
   end
   describe 'status-specific halts' do
     it 'halts ok' do
-      haltex = assert_raises(ApiHammer::Halt) { FakeController.new.halt_ok({}) }
+      haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.halt_ok({}) }
       assert_equal({}, haltex.body)
       assert_equal(200, haltex.render_options[:status])
     end
     it 'halts unprocessable entity' do
-      haltex = assert_raises(ApiHammer::Halt) { FakeController.new.halt_unprocessable_entity({}) }
+      haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.halt_unprocessable_entity({}) }
       assert_equal({'errors' => {}}, haltex.body)
       assert_equal(422, haltex.render_options[:status])
     end
@@ -49,7 +49,7 @@ describe 'ApiHammer::Rails#halt' do
           define_method(:table_name) { 'record' }
         end
       end
-      haltex = assert_raises(ApiHammer::Halt) { FakeController.new.find_or_halt(model, {:id => 'anid'}) }
+      haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.find_or_halt(model, {:id => 'anid'}) }
       assert_equal({'error_message' => 'Unknown record! id: anid', 'errors' => {'record' => ['Unknown record! id: anid']}}, haltex.body)
       assert_equal(404, haltex.render_options[:status])
     end
