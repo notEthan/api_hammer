@@ -1,3 +1,7 @@
+# v0.13.1
+- ApiHammer::Sinatra class method use_with_lint
+- set up Rack::Accept middleware in sinatra as api hammer methods rely on that
+
 # v0.13.0
 - ApiHammer::Sinatra, with some useful sinatra methods
   - #halt, #halt_error, #halt_unprocessable_entity and friends
