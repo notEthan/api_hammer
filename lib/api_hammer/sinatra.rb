@@ -10,7 +10,11 @@ module ApiHammer
 
     # override Sinatra::Base#route_missing
     def route_missing
-      halt_error(404, {'route' => [I18n.t('app.errors.request.route_404', :method => env['REQUEST_METHOD'], :path => env['PATH_INFO'])]})
+      message = I18n.t('app.errors.request.route_404',
+        :default => "Not a known route: %{method} %{path}",
+        :method => env['REQUEST_METHOD'], :path => env['PATH_INFO']
+      )
+      halt_error(404, {'route' => [message]})
     end
 
     include ApiHammer::Sinatra::Halt
@@ -55,7 +59,12 @@ module ApiHammer
         else
           if options[:halt_if_unacceptable]
             logger.error "received Accept header of #{accept.inspect}; halting with 406"
-            halt_error(406, {'Accept' => [I18n.t('app.errors.request.accept', :accept => accept, :supported_media_types => supported_media_types.join(', '))]})
+            message = I18n.t('app.errors.request.accept',
+              :default => "The request indicated that no supported media type is acceptable. Supported media types are: %{supported_media_types}. The request specified Accept: %{accept}",
+              :accept => accept,
+              :supported_media_types => supported_media_types.join(', ')
+            )
+            halt_error(406, {'Accept' => [message]})
           else
             supported_media_types.first
           end
@@ -112,8 +121,20 @@ module ApiHammer
         begin
           return JSON.parse(request_body)
         rescue JSON::ParserError
-          t_key = fallback ? 'app.errors.request.body_parse_fallback_json' : 'app.errors.request.body_parse_indicated_json'
-          errors = {'json' => [I18n.t(t_key, :error_class => $!.class, :error_message => $!.message, :supported_media_types => supported_media_types.join(', '))]}
+          if fallback
+            t_key = 'app.errors.request.body_parse_fallback_json'
+            default = "Error encountered attempting to parse the request body. No Content-Type was specified and parsing as JSON failed. Supported media types are %{supported_media_types}. JSON parser error: %{error_class}: %{error_message}"
+          else
+            t_key = 'app.errors.request.body_parse_indicated_json'
+            default = "Error encountered attempting to parse the JSON request body: %{error_class}: %{error_message}"
+          end
+          message = I18n.t(t_key,
+            :default => default,
+            :error_class => $!.class,
+            :error_message => $!.message,
+            :supported_media_types => supported_media_types.join(', ')
+          )
+          errors = {'json' => [message]}
           halt_error(400, errors)
         end
       else
@@ -123,7 +144,12 @@ module ApiHammer
           # :nocov:
         end
         logger.error "received Content-Type of #{request.content_type.inspect}; halting with 415"
-        errors = {'Content-Type' => [I18n.t('app.errors.request.content_type', :content_type => request.content_type, :supported_media_types => supported_media_types.join(', '))]}
+        message = I18n.t('app.errors.request.content_type',
+          :default => "Unsupported Content-Type of %{content_type} given for the request body. Supported media types are %{supported_media_types}",
+          :content_type => request.content_type,
+          :supported_media_types => supported_media_types.join(', ')
+        )
+        errors = {'Content-Type' => [message]}
         halt_error(415, errors)
       end
     end
