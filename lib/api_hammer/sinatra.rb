@@ -27,6 +27,10 @@ module ApiHammer
           use middleware, *args, &block
           use Rack::Lint if development? || test?
         end
+
+        # ApiHammer::Sinatra's methods use Rack::Accept so we will go ahead and put this middleware
+        # in the stack
+        klass.use_with_lint Rack::Accept
       end
     end
 
