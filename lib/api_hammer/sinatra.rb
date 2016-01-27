@@ -8,6 +8,19 @@ module ApiHammer
       end
     end
 
+    unless @sinatra_included_defined
+      @sinatra_included_defined = true
+      (@on_included ||= Set.new) << proc do |klass|
+        # set up self.supported_media_types
+        klass.define_singleton_method(:supported_media_types=) do |supported_media_types|
+          @supported_media_types = supported_media_types
+        end
+        klass.define_singleton_method(:supported_media_types) do
+          @supported_media_types
+        end
+      end
+    end
+
     # override Sinatra::Base#route_missing
     def route_missing
       message = I18n.t('app.errors.request.route_404',
@@ -18,18 +31,6 @@ module ApiHammer
     end
 
     include ApiHammer::Sinatra::Halt
-
-    unless instance_variables.any? { |iv| iv.to_s == '@supported_media_types_included' }
-      @supported_media_types_included = proc do |klass|
-        klass.define_singleton_method(:supported_media_types=) do |supported_media_types|
-          @supported_media_types = supported_media_types
-        end
-        klass.define_singleton_method(:supported_media_types) do
-          @supported_media_types
-        end
-      end
-      (@on_included ||= Set.new) << @supported_media_types_included
-    end
 
     def supported_media_types
       self.class.supported_media_types

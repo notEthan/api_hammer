@@ -19,11 +19,11 @@ module ApiHammer::Rails
     attr_reader :body, :render_options
   end
 
-  unless instance_variables.any? { |iv| iv.to_s == '@halt_included' }
-    @halt_included = proc do |controller_class|
+  unless @rails_halt_included_defined
+    @rails_halt_included_defined = true
+    (@on_included ||= Set.new) << proc do |controller_class|
       controller_class.send(:rescue_from, ApiHammer::Rails::Halt, :with => :handle_halt)
     end
-    (@on_included ||= Set.new) << @halt_included
   end
 
   # handle a raised ApiHammer::Halt or subclass and render it
