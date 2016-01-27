@@ -18,6 +18,15 @@ module ApiHammer
         klass.define_singleton_method(:supported_media_types) do
           @supported_media_types
         end
+
+        # causes a Rack::Lint middleware to be inserted before and after the given middleware to be used 
+        klass.define_singleton_method(:use_with_lint) do |middleware, *args, &block|
+          if (development? || test?) && (@middleware.empty? || @middleware.last.first != Rack::Lint)
+            use Rack::Lint
+          end
+          use middleware, *args, &block
+          use Rack::Lint if development? || test?
+        end
       end
     end
 
