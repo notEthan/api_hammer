@@ -4,6 +4,7 @@ require 'api_hammer/version'
 
 module ApiHammer
   autoload :Rails, 'api_hammer/rails'
+  autoload :Sinatra, 'api_hammer/sinatra'
   autoload :RequestLogger, 'api_hammer/request_logger'
   autoload :ShowTextExceptions, 'api_hammer/show_text_exceptions'
   autoload :TrailingNewline, 'api_hammer/trailing_newline'
