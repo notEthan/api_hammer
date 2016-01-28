@@ -12,9 +12,16 @@ module ApiHammer
       unless errors_as_json.values.all? { |v| v.is_a?(Array) && v.all? { |e| e.is_a?(String) } }
         raise ArgumentError, "errors values must all be arrays of strings; got errors = #{errors.inspect}"
       end
-      halt_options = options.dup.with_indifferent_access
+      error_message = nil
+      halt_options = options.reject do |k,v|
+        (k.to_s == 'error_message').tap do |is_error_message|
+          if is_error_message
+            error_message = v
+          end
+        end
+      end
       body = {'errors' => errors}
-      error_message = halt_options.delete('error_message') || begin
+      error_message ||= begin
         error_values = errors.values.inject([], &:+)
         if error_values.size <= 1
           error_values.first
