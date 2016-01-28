@@ -1,3 +1,6 @@
+# v0.13.2
+- fix with_indifferent_access usage when we don't depend on activesupport
+
 # v0.13.1
 - ApiHammer::Sinatra class method use_with_lint
 - set up Rack::Accept middleware in sinatra as api hammer methods rely on that
