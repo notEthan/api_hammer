@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.call(File.expand_path('.', File.dirname(__FILE__)))
 require 'helper'
 require 'logger'
@@ -66,6 +67,16 @@ describe ApiHammer::RequestLogger do
 
         assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\"}"))
       end
+
+      it 'filters unicode' do
+        body = %Q({"key": "Björn"})
+        app = proc { |env| [200, {"Content-Type" => 'application/json; charset=utf-8'}, [body]] }
+        app = ApiHammer::RequestLogger.new(app, logger)
+        app.call(Rack::MockRequest.env_for('/')).last.close
+
+        assert_includes(logio.string, %q("body":"{\"key\": \"Björn\"}"))
+      end
+
       it 'filters nested' do
         body = %Q({"object": {"pin": "foobar"}})
         app = proc { |env| [200, {"Content-Type" => 'application/json; charset=UTF8'}, [body]] }
