@@ -35,7 +35,23 @@ module ApiHammer
 
       def filter_string
         if scan(STRING)
-          self[0]
+          string = self[0].gsub(%r((?:\\[\\bfnrt"/]|(?:\\u(?:[A-Fa-f\d]{4}))+|\\[\x20-\xff]))n) do |c|
+            if u = UNESCAPE_MAP[$&[1]]
+              u
+            else # \uXXXX
+              bytes = EMPTY_8BIT_STRING.dup
+              i = 0
+              while c[6 * i] == ?\\ && c[6 * i + 1] == ?u
+                bytes << c[6 * i + 2, 2].to_i(16) << c[6 * i + 4, 2].to_i(16)
+                i += 1
+              end
+              JSON.iconv('utf-8', 'utf-16be', bytes)
+            end
+          end
+          if string.respond_to?(:force_encoding)
+            string.force_encoding(::Encoding::UTF_8)
+          end
+          string
         else
           UNPARSED
         end
