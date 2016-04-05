@@ -117,7 +117,7 @@ module ApiHammer
         if content_type_attrs.text?
           if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
             # log bodies if they are not large, or if there was an error (either client or server) 
-            data[role]['body'] = parsed_body.jsonifiable.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).body
+            data[role]['body'] = parsed_body.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).jsonifiable.body
           else
             # otherwise, log id and uuid fields 
             body_object = parsed_body.object
