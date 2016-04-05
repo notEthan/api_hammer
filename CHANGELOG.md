@@ -1,3 +1,6 @@
+# v0.13.3
+- fix bug when logging non-ascii bodies with filtration enabled
+
 # v0.13.2
 - fix with_indifferent_access usage when we don't depend on activesupport
 
