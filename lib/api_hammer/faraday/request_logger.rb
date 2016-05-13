@@ -79,8 +79,13 @@ module ApiHammer
               'activesupport_tagged_logging_tags' => @log_tags,
             }.reject{|k,v| v.nil? },
           }
-
-          json_data = JSON.generate(data)
+          begin
+            json_data = JSON.generate(data)
+          rescue Encoding::UndefinedConversionError => e
+            # force encoding on request data in case of a conversion error
+            data["request"].each {|k,v| v.force_encoding('UTF-8') if String == v.class }
+            json_data = JSON.generate(data)
+          end
           dolog = proc do
             now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
             @logger.info "#{bold(intense_magenta('>'))} #{status_s} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(now_s)}"
