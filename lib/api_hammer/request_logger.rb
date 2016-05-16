@@ -101,7 +101,7 @@ module ApiHammer
         'response' => {
           'status' => status.to_s,
           'headers' => response_headers,
-          'length' => response_headers['Content-Length'] || response_body.to_enum.map(&::Rack::Utils.method(:bytesize)).inject(0, &:+),
+          'length' => response_headers['Content-Length'] || response_body.to_enum.map(&:bytesize).inject(0, &:+),
         }.reject { |k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_f,
