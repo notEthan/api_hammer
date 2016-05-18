@@ -35,7 +35,8 @@ module ApiHammer::Rails
       when Array
         check.each { |subcheck| check_required_params_helper(subcheck, subparams, errors, parents) }
       when Hash
-        if subparams.is_a?(Hash)
+        case subparams
+        when Hash, ActionController::Parameters
           check.each do |key, subcheck|
             check_required_params_helper(subcheck, subparams[key], errors, parents + [key])
           end
@@ -47,7 +48,8 @@ module ApiHammer::Rails
           add_error.call(I18n.t(:"errors.required_params.must_be_type", :default => "%{key} must be a %{type}", :key => key, :type => check.name))
         end
       else
-        if subparams.is_a?(Hash)
+        case subparams
+        when Hash, ActionController::Parameters
           check_required_params_helper(nil, subparams[check], errors, parents + [check])
         else
           add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key))
