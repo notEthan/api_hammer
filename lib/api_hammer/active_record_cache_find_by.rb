@@ -23,7 +23,7 @@ module ActiveRecord
     def one_record_with_caching(can_cache = true)
       actual_right = proc do |where_value|
         if where_value.right.is_a?(Arel::Nodes::BindParam)
-          column, value = bind_values.detect { |(column, value)| column.name.to_s == where_value.left.name.to_s }
+          _, value = bind_values.detect { |(column, _)| column.name.to_s == where_value.left.name.to_s }
           value
         else
           where_value.right
