@@ -2,7 +2,7 @@ module ApiHammer
   # parses attributes out of content type header
   class ContentTypeAttrs
     def initialize(content_type)
-      @media_type = content_type.split(/\s*[;]\s*/, 2).first if content_type
+      @media_type = (content_type.split(/\s*[;]\s*/, 2).first if content_type)
       @media_type.strip! if @media_type
       @content_type = content_type
       @parsed = false
