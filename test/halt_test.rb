@@ -42,7 +42,6 @@ describe 'ApiHammer::Rails#halt' do
       assert_equal record, FakeController.new.find_or_halt(model, {:id => 'anid'})
     end
     it 'it halts with 404 if not' do
-      record = Object.new
       model = Class.new do
         (class << self; self; end).class_eval do
           define_method(:where) { |attrs| [] }
