@@ -36,8 +36,8 @@ module ApiHammer::Rails
         check.each { |subcheck| check_required_params_helper(subcheck, subparams, errors, parents) }
       when Hash
         if subparams.is_a?(Hash)
-          check.each do |key, subcheck|
-            check_required_params_helper(subcheck, subparams[key], errors, parents + [key])
+          check.each do |key_, subcheck|
+            check_required_params_helper(subcheck, subparams[key_], errors, parents + [key_])
           end
         else
           add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key))
