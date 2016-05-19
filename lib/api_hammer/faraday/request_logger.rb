@@ -76,7 +76,7 @@ module ApiHammer
             'processing' => {
               'began_at' => began_at.utc.to_f,
               'duration' => now - began_at,
-              'activesupport_tagged_logging_tags' => @log_tags,
+              'activesupport_tagged_logging_tags' => log_tags,
             }.reject{|k,v| v.nil? },
           }
 
