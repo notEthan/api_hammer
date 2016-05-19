@@ -30,7 +30,7 @@ module ApiHammer
       if env['REQUEST_METHOD'].downcase != 'head' && ApiHammer::ContentTypeAttrs.new(content_type).text?
         body = TNLBodyProxy.new(body){}
         if headers["Content-Length"]
-          headers["Content-Length"] = body.map(&Rack::Utils.method(:bytesize)).inject(0, &:+).to_s
+          headers["Content-Length"] = body.map(&:bytesize).inject(0, &:+).to_s
         end
       end
       [status, headers, body]
