@@ -77,7 +77,7 @@ module ApiHammer
           name = http_match.post_match.downcase
           {name => value}
         else
-          name = %w(content_type content_length).detect { |name| name.downcase == key.downcase }
+          name = %w(content_type content_length).detect { |sname| sname.downcase == key.downcase }
           if name
             {name => value}
           end
