@@ -12,7 +12,7 @@ module ApiHammer
         uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
         scanner = StringScanner.new(content_type)
         scanner.scan(/.*;\s*/) || throw(:unparseable)
-        while match = scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
+        while scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
           key = scanner[1]
           quote1 = scanner[2]
           value = scanner[3]
