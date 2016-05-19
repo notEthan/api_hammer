@@ -125,8 +125,8 @@ module ActiveRecord
     def flush_find_cache
       self.class.send(:cache_find_bys).each do |attribute_names|
         find_attributes = attribute_names.map { |attr_name| [attr_name, attribute_was(attr_name)] }
-        self.class.instance_exec(find_attributes) do |find_attributes|
-          finder_cache.delete(cache_key_for(find_attributes))
+        self.class.instance_exec(find_attributes) do |find_attributes_|
+          finder_cache.delete(cache_key_for(find_attributes_))
         end
       end
       nil
