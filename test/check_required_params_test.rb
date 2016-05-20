@@ -40,6 +40,66 @@ describe 'ApiHammer::Rails#check_required_params' do
       assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
     end
 
+    describe 'when ActionController::Parameters is undefined' do
+      it 'it handle the array properly' do
+        assert_equal(nil, defined?(ActionController::Parameters))
+        c = controller_with_params(:id => '99', :person => ['hammer', '3'], :lucky_numbers => ['2'])
+        err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(checks) }
+        assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
+      end
+    end
+
+    describe 'when ActionController::Parameters is defined' do
+      before do
+        module ActionController
+          class Parameters
+            def initialize(hash)
+              @hash = hash
+            end
+            def to_h
+              @hash
+            end
+            def [](key)
+              @hash[key]
+            end
+          end
+        end
+        assert_equal('constant', defined?(ActionController::Parameters))
+      end
+
+      after do
+        ActionController.send(:remove_const, :Parameters)
+        Object.send(:remove_const, :ActionController)
+      end
+
+      describe 'when sending a ActionController::Parameters as params' do
+        describe 'with invalid subparams' do
+          it 'it act as if it was a hash' do
+            invalid_params = {:id => '99', :person => ['hammer', '3'], :lucky_numbers => ['2']}
+            c = controller_with_params(ActionController::Parameters.new(invalid_params))
+            err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(checks) }
+            assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
+          end
+        end
+        describe 'when everything is valid' do
+          it 'it act as if it was a hash' do
+            person = ActionController::Parameters.new(:name => 'hammer', :height => '3')
+            params = ActionController::Parameters.new(:id => '99', :person => person, :lucky_numbers => ['2'])
+            c = controller_with_params(params)
+            c.check_required_params(checks)
+          end
+        end
+      end
+
+      describe 'when sending a ActionController::Parameters as subparams' do
+        it 'it act as if the subparams was a hash' do
+          person = ActionController::Parameters.new(:name => 'hammer', :height => '3')
+          c = controller_with_params(:id => '99', :person => person, :lucky_numbers => ['2'])
+          c.check_required_params(checks)
+        end
+      end
+    end
+
     it 'is missing person#name' do
       c = controller_with_params(:id => '99', :person => {:height => '3'}, :lucky_numbers => ['2'])
       err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(checks) }
