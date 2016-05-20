@@ -47,7 +47,7 @@ module ApiHammer::Rails
           add_error.call(I18n.t(:"errors.required_params.must_be_type", :default => "%{key} must be a %{type}", :key => key, :type => check.name))
         end
       else
-        if subparams.is_a?(Hash)
+        if subparams.respond_to?(:to_h)
           check_required_params_helper(nil, subparams[check], errors, parents + [check])
         else
           add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key))
