@@ -40,6 +40,12 @@ describe 'ApiHammer::Rails#check_required_params' do
       assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
     end
 
+    it 'is has the wrong type for person with hash check' do
+      c = controller_with_params(:person => [])
+      err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(:person => {:id => Fixnum}) }
+      assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
+    end
+
     it 'is missing person#name' do
       c = controller_with_params(:id => '99', :person => {:height => '3'}, :lucky_numbers => ['2'])
       err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(checks) }
