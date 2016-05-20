@@ -35,7 +35,7 @@ module ApiHammer::Rails
       when Array
         check.each { |subcheck| check_required_params_helper(subcheck, subparams, errors, parents) }
       when Hash
-        if subparams.respond_to?(:to_h)
+        if subparams.is_a?(Hash) || (Object.const_defined?('ActionController') && subparams.is_a?(::ActionController::Parameters))
           check.each do |key, subcheck|
             check_required_params_helper(subcheck, subparams[key], errors, parents + [key])
           end
