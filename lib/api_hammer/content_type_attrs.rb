@@ -2,7 +2,7 @@ module ApiHammer
   # parses attributes out of content type header
   class ContentTypeAttrs
     def initialize(content_type)
-      @media_type = content_type.split(/\s*[;]\s*/, 2).first if content_type
+      @media_type = (content_type.split(/\s*[;]\s*/, 2).first if content_type)
       @media_type.strip! if @media_type
       @content_type = content_type
       @parsed = false
@@ -12,7 +12,7 @@ module ApiHammer
         uri_parser = URI.const_defined?(:Parser) ? URI::Parser.new : URI
         scanner = StringScanner.new(content_type)
         scanner.scan(/.*;\s*/) || throw(:unparseable)
-        while match = scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
+        while scanner.scan(/(\w+)=("?)([^"]*)("?)\s*(,?)\s*/)
           key = scanner[1]
           quote1 = scanner[2]
           value = scanner[3]

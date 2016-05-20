@@ -103,12 +103,12 @@ describe 'ActiveRecord::Base.cache_find_by' do
   end
 
   it('caches #where.first with integer attribute') do
-    id = Album.create!(:tracks => 3).id
+    Album.create!(:tracks => 3)
     assert_caches("cache_find_by/albums/tracks/3") { assert Album.where(:tracks => 3).first }
   end
 
   it('does not cache #where.first with inequality of integer attribute') do
-    id = Album.create!(:tracks => 3).id
+    Album.create!(:tracks => 3)
     assert_not_caches("cache_find_by/albums/tracks/3") { assert Album.where(Album.arel_table['tracks'].gteq(3)).first }
   end
 

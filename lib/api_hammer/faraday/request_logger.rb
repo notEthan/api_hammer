@@ -51,7 +51,7 @@ module ApiHammer
             ['request', request_body, request_env.request_headers],
             ['response', response_env.body, response_env.response_headers]
           ].map do |(role, body, headers)|
-            {role => Body.new(body, headers['Content-Type']).jsonifiable}
+            {role => Body.new(body, headers['Content-Type'])}
           end.inject({}, &:update)
 
           if @options[:filter_keys]
@@ -66,17 +66,17 @@ module ApiHammer
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
               'headers' => request_env.request_headers,
-              'body' => (bodies['request'].body if bodies['request'].content_type_attrs.text?),
+              'body' => (bodies['request'].jsonifiable.body if bodies['request'].content_type_attrs.text?),
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => response_env.status.to_s,
               'headers' => response_env.response_headers,
-              'body' => (bodies['response'].body if bodies['response'].content_type_attrs.text?),
+              'body' => (bodies['response'].jsonifiable.body if bodies['response'].content_type_attrs.text?),
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_f,
               'duration' => now - began_at,
-              'activesupport_tagged_logging_tags' => @log_tags,
+              'activesupport_tagged_logging_tags' => log_tags,
             }.reject{|k,v| v.nil? },
           }
 

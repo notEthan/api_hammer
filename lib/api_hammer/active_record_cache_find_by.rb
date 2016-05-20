@@ -23,7 +23,7 @@ module ActiveRecord
     def one_record_with_caching(can_cache = true)
       actual_right = proc do |where_value|
         if where_value.right.is_a?(Arel::Nodes::BindParam)
-          column, value = bind_values.detect { |(column, value)| column.name.to_s == where_value.left.name.to_s }
+          _, value = bind_values.detect { |(column, _)| column.name.to_s == where_value.left.name.to_s }
           value
         else
           where_value.right
@@ -114,7 +114,8 @@ module ActiveRecord
         attrs = find_attributes.map { |k,v| [k.to_s, v.to_s] }.sort_by(&:first).inject([], &:+)
         cache_key_prefix = ['cache_find_by', table_name]
         @parser ||= URI.const_defined?(:Parser) ? URI::Parser.new : URI
-        cache_key = (cache_key_prefix + attrs).map do |part|
+
+        (cache_key_prefix + attrs).map do |part|
           @parser.escape(part, /[^a-z0-9\-\.\_\~]/i)
         end.join('/')
       end
@@ -124,8 +125,8 @@ module ActiveRecord
     def flush_find_cache
       self.class.send(:cache_find_bys).each do |attribute_names|
         find_attributes = attribute_names.map { |attr_name| [attr_name, attribute_was(attr_name)] }
-        self.class.instance_exec(find_attributes) do |find_attributes|
-          finder_cache.delete(cache_key_for(find_attributes))
+        self.class.instance_exec(find_attributes) do |find_attributes_|
+          finder_cache.delete(cache_key_for(find_attributes_))
         end
       end
       nil
