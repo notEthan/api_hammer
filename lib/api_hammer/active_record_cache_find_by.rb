@@ -60,6 +60,9 @@ module ActiveRecord
   class Base
     class << self
       def finder_cache=(val)
+        (class << self; self; end).instance_exec(:finder_cache) do |method_name|
+          undef_method(method_name) if method_defined?(method_name) || private_method_defined?(method_name)
+        end
         define_singleton_method(:finder_cache) { val }
       end
 
@@ -102,6 +105,9 @@ module ActiveRecord
 
       private
       def cache_find_bys=(val)
+        (class << self; self; end).instance_exec(:cache_find_bys) do |method_name|
+          undef_method(method_name) if method_defined?(method_name) || private_method_defined?(method_name)
+        end
         define_singleton_method(:cache_find_bys) { val }
         singleton_class.send(:private, :cache_find_bys)
       end
