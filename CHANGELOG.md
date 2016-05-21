@@ -1,8 +1,15 @@
+# v0.13.4
+- some rails 5 support
+  - check_required_params to support ActionController::Parameters #44
+  - handle not loading deprecated log_tailer when not found #33
+  - use ruby String#bytesize instead of Rack::Util #34
+- fix same bug as v0.13.3 with logging non-ascii bodies on faraday logger #35
+
 # v0.13.3
-- fix bug when logging non-ascii bodies with filtration enabled
+- fix bug when logging non-ascii bodies with filtration enabled #31
 
 # v0.13.2
-- fix with_indifferent_access usage when we don't depend on activesupport
+- fix with_indifferent_access usage when we don't depend on activesupport #29
 
 # v0.13.1
 - ApiHammer::Sinatra class method use_with_lint
