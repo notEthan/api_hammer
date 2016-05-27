@@ -56,7 +56,7 @@ module ApiHammer
 
           if @options[:filter_keys]
             bodies = bodies.map do |(role, body)|
-              {role => body.filtered(@options.slice(:filter_keys))}
+              {role => body.filtered(:filter_keys => @options[:filter_keys])}
             end.inject({}, &:update)
           end
 
