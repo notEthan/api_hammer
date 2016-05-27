@@ -1,9 +1,12 @@
-# v0.13.4
+# v0.14.0
 - some rails 5 support
   - check_required_params to support ActionController::Parameters #44
   - handle not loading deprecated log_tailer when not found #33
   - use ruby String#bytesize instead of Rack::Util #34
 - fix same bug as v0.13.3 with logging non-ascii bodies on faraday logger #35
+- remove ActiveRecord cache_find_by
+- option :log_bodies for request loggers
+- fix warnings when run with -w
 
 # v0.13.3
 - fix bug when logging non-ascii bodies with filtration enabled #31
