@@ -2,6 +2,12 @@ proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.cal
 
 require 'api_hammer/version'
 
+require 'i18n'
+# this weirdness is because enforce_available_locales complains when you try to use the default locale 
+# with no translations stored. usually the application will have stored translations in the locale, but, 
+# not always, so we put a dummy key in.
+I18n.backend.store_translations(I18n.locale, {__api_hammer__: ''})
+
 module ApiHammer
   autoload :Rails, 'api_hammer/rails'
   autoload :Sinatra, 'api_hammer/sinatra'
