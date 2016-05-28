@@ -16,6 +16,7 @@ module ApiHammer
     #
     # options:
     # - :filter_keys defines keys whose values will be filtered out of the logging 
+    # - :log_bodies - true, false, :on_error
     class RequestLogger < ::Faraday::Middleware
       include Term::ANSIColor
       include ApiHammer::RequestLoggerHelper

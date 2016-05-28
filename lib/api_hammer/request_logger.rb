@@ -46,7 +46,8 @@ module ApiHammer
 
     # options
     # - :logger
-    # - :filter_keys
+    # - :filter_keys - array of keys to filter from logged bodies
+    # - :log_bodies - true, false, :on_error
     def initialize(app, logger, options={})
       @options = options
       super(app, logger)
