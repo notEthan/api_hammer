@@ -126,6 +126,20 @@ describe ApiHammer::RequestLogger do
     end
   end
 
+  describe 'log_bodies' do
+    it 'does not log bodies when log_bodies is false' do
+      app = proc do |env|
+        [200, {'Content-Type' => 'text/plain'}, ['data go here']]
+      end
+      conn = Faraday.new do |f|
+        f.request :api_hammer_request_logger, logger, :log_bodies => false
+        f.use Faraday::Adapter::Rack, app
+      end
+      conn.get '/'
+      assert(!logio.string.include?('data go here'))
+    end
+  end
+
   describe 'filtering' do
     describe 'json response' do
       it 'filters' do

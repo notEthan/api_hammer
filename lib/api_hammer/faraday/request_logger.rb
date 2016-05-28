@@ -24,13 +24,17 @@ module ApiHammer
         @options = options
       end
 
+      def log_bodies
+        @options.key?(:log_bodies) ? @options[:log_bodies] : true
+      end
+
       def call(request_env)
         began_at = Time.now
 
         log_tags = Thread.current[:activesupport_tagged_logging_tags]
         saved_log_tags = log_tags.dup if log_tags && log_tags.any?
 
-        request_body = request_env[:body].dup if request_env[:body]
+        request_body = request_env[:body].dup if request_env[:body] && log_bodies
 
         @app.call(request_env).on_complete do |response_env|
           now = Time.now
@@ -47,17 +51,22 @@ module ApiHammer
           end
           status_s = bold(send(status_color, response_env.status.to_s))
 
-          bodies = [
-            ['request', request_body, request_env.request_headers],
-            ['response', response_env.body, response_env.response_headers]
-          ].map do |(role, body, headers)|
-            {role => Body.new(body, headers['Content-Type'])}
-          end.inject({}, &:update)
-
-          if @options[:filter_keys]
-            bodies = bodies.map do |(role, body)|
-              {role => body.filtered(@options.slice(:filter_keys))}
+          if log_bodies
+            bodies = [
+              ['request', request_body, request_env.request_headers],
+              ['response', response_env.body, response_env.response_headers]
+            ].map do |(role, body_s, headers)|
+              body = Body.new(body_s, headers['Content-Type'])
+              if body.content_type_attrs.text?
+                if @options[:filter_keys]
+                  body = body.filtered(@options.slice(:filter_keys))
+                end
+                log_body = body.jsonifiable.body
+              end
+              {role => log_body}
             end.inject({}, &:update)
+          else
+            bodies = {}
           end
 
           data = {
@@ -66,12 +75,12 @@ module ApiHammer
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
               'headers' => request_env.request_headers,
-              'body' => (bodies['request'].jsonifiable.body if bodies['request'].content_type_attrs.text?),
+              'body' => bodies['request'],
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => response_env.status.to_s,
               'headers' => response_env.response_headers,
-              'body' => (bodies['response'].jsonifiable.body if bodies['response'].content_type_attrs.text?),
+              'body' => bodies['response'],
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_f,
