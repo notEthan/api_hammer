@@ -2,6 +2,7 @@ require 'faraday'
 require 'term/ansicolor'
 require 'json'
 require 'strscan'
+require 'api_hammer/request_logger'
 
 module ApiHammer
   module Faraday
@@ -17,15 +18,12 @@ module ApiHammer
     # - :filter_keys defines keys whose values will be filtered out of the logging 
     class RequestLogger < ::Faraday::Middleware
       include Term::ANSIColor
+      include ApiHammer::RequestLoggerHelper
 
       def initialize(app, logger, options={})
         @app = app
         @logger = logger
         @options = options
-      end
-
-      def log_bodies
-        @options.key?(:log_bodies) ? @options[:log_bodies] : true
       end
 
       def call(request_env)
@@ -34,24 +32,13 @@ module ApiHammer
         log_tags = Thread.current[:activesupport_tagged_logging_tags]
         saved_log_tags = log_tags.dup if log_tags && log_tags.any?
 
-        request_body = request_env[:body].dup if request_env[:body] && log_bodies
+        request_body = request_env[:body].dup if request_env[:body]
 
         @app.call(request_env).on_complete do |response_env|
           now = Time.now
+          status = response_env.status
 
-          status_color = case response_env.status.to_i
-          when 200..299
-            :intense_green
-          when 400..499
-            :intense_yellow
-          when 500..599
-            :intense_red
-          else
-            :white
-          end
-          status_s = bold(send(status_color, response_env.status.to_s))
-
-          if log_bodies
+          if log_bodies(status)
             bodies = [
               ['request', request_body, request_env.request_headers],
               ['response', response_env.body, response_env.response_headers]
@@ -78,7 +65,7 @@ module ApiHammer
               'body' => bodies['request'],
             }.reject{|k,v| v.nil? },
             'response' => {
-              'status' => response_env.status.to_s,
+              'status' => status.to_s,
               'headers' => response_env.response_headers,
               'body' => bodies['response'],
             }.reject{|k,v| v.nil? },
@@ -92,7 +79,7 @@ module ApiHammer
           json_data = JSON.generate(data)
           dolog = proc do
             now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
-            @logger.info "#{bold(intense_magenta('>'))} #{status_s} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(now_s)}"
+            @logger.info "#{bold(intense_magenta('>'))} #{status_s(status)} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(now_s)}"
             @logger.info json_data
           end
 

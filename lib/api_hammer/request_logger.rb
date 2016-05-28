@@ -4,6 +4,32 @@ require 'json'
 require 'addressable/uri'
 
 module ApiHammer
+  module RequestLoggerHelper
+    def log_bodies(status)
+      if @options[:log_bodies] == :on_error
+        (400..599).include?(status.to_i)
+      elsif @options.key?(:log_bodies)
+        @options[:log_bodies]
+      else
+        true
+      end
+    end
+
+    def status_s(status)
+      status_color = case status.to_i
+      when 200..299
+        :intense_green
+      when 400..499
+        :intense_yellow
+      when 500..599
+        :intense_red
+      else
+        :white
+      end
+      bold(send(status_color, status.to_s))
+    end
+  end
+
   # Rack middleware for logging. much like Rack::CommonLogger but with a log message that isn't an unreadable 
   # mess of dashes and unlabeled numbers. 
   #
@@ -14,6 +40,7 @@ module ApiHammer
   #   pretty, but informative.
   class RequestLogger < Rack::CommonLogger
     include Term::ANSIColor
+    include RequestLoggerHelper
 
     LARGE_BODY_SIZE = 4096
 
@@ -58,18 +85,6 @@ module ApiHammer
 
       request = Rack::Request.new(env)
       response = Rack::Response.new('', status, response_headers)
-
-      status_color = case status.to_i
-      when 200..299
-        :intense_green
-      when 400..499
-        :intense_yellow
-      when 500..599
-        :intense_red
-      else
-        :white
-      end
-      status_s = bold(send(status_color, status.to_s))
 
       request_headers = env.map do |(key, value)|
         http_match = key.match(/\AHTTP_/)
@@ -139,7 +154,7 @@ module ApiHammer
       json_data = JSON.dump(data)
       dolog = proc do
         now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
-        @logger.info "#{bold(intense_cyan('<'))} #{status_s} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)} @ #{intense_cyan(now_s)}"
+        @logger.info "#{bold(intense_cyan('<'))} #{status_s(status)} : #{bold(intense_cyan(request.request_method))} #{intense_cyan(request_uri.normalize)} @ #{intense_cyan(now_s)}"
         @logger.info json_data
       end
       # do the logging with tags that applied to the request if appropriate 
