@@ -127,27 +127,29 @@ module ApiHammer
       }
       response_body_string = response_body.to_enum.to_a.join('')
       body_info = [['request', request_body, request.content_type], ['response', response_body_string, response.content_type]]
-      body_info.map do |(role, body, content_type)|
-        parsed_body = ApiHammer::Body.new(body, content_type)
-        content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
-        if content_type_attrs.text?
-          if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
-            # log bodies if they are not large, or if there was an error (either client or server) 
-            data[role]['body'] = parsed_body.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).jsonifiable.body
-          else
-            # otherwise, log id and uuid fields 
-            body_object = parsed_body.object
-            sep = /(?:\b|\W|_)/
-            hash_ids = proc do |hash|
-              hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
-            end
-            if body_object.is_a?(Hash)
-              body_ids = hash_ids.call(body_object)
-            elsif body_object.is_a?(Array) && body_object.all? { |e| e.is_a?(Hash) }
-              body_ids = body_object.map(&hash_ids)
-            end
+      if log_bodies(status)
+        body_info.map do |(role, body, content_type)|
+          parsed_body = ApiHammer::Body.new(body, content_type)
+          content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
+          if content_type_attrs.text?
+            if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
+              # log bodies if they are not large, or if there was an error (either client or server) 
+              data[role]['body'] = parsed_body.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).jsonifiable.body
+            else
+              # otherwise, log id and uuid fields 
+              body_object = parsed_body.object
+              sep = /(?:\b|\W|_)/
+              hash_ids = proc do |hash|
+                hash.reject { |key, value| !(key =~ /#{sep}([ug]u)?id#{sep}/ && value.is_a?(String)) }
+              end
+              if body_object.is_a?(Hash)
+                body_ids = hash_ids.call(body_object)
+              elsif body_object.is_a?(Array) && body_object.all? { |e| e.is_a?(Hash) }
+                body_ids = body_object.map(&hash_ids)
+              end
 
-            data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
+              data[role]['body_ids'] = body_ids if body_ids && body_ids.any?
+            end
           end
         end
       end
