@@ -47,7 +47,7 @@ module ApiHammer
               body = Body.new(body_s, headers['Content-Type'])
               if body.content_type_attrs.text?
                 if @options[:filter_keys]
-                  body = body.filtered(@options.slice(:filter_keys))
+                  body = body.filtered(:filter_keys => @options[:filter_keys])
                 end
                 log_body = body.jsonifiable.body
               end
