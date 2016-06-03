@@ -1,5 +1,7 @@
 # ApiHammer
 
+[![Build Status](https://travis-ci.org/notEthan/api_hammer.svg?branch=master)](https://travis-ci.org/notEthan/api_hammer)
+
 a collection of little tools I have used when creating APIs. these are generally too small to have their own 
 library, so have been collected here. 
 
