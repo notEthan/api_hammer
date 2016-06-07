@@ -1,3 +1,6 @@
+# v0.14.1
+- task cucumber:trailing_whitespace to clean trailing whitespace from cucumber features #54
+
 # v0.14.0
 - some rails 5 support
   - check_required_params to support ActionController::Parameters #44
