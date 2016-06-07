@@ -51,4 +51,22 @@ namespace :cucumber do
       end
     end
   end
+
+  desc "removes trailing whitespace from feature files"
+  task :trailing_whitespace do
+    features = Dir['features/**/*.feature']
+    features.each do |feature_file|
+      feature = File.read(feature_file)
+      lines = feature.split("\n", -1)
+      ntwslines = lines.map { |line| line =~ /\s+\z/ ? $` : line }
+      feature_no_tws = ntwslines.join("\n")
+
+      if feature != feature_no_tws
+        STDERR.puts "removing trailing whitespace: #{feature_file}"
+        File.open(feature_file, 'w') do |f|
+          f.write(feature_no_tws)
+        end
+      end
+    end
+  end
 end
