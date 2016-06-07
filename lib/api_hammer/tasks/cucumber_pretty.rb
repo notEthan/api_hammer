@@ -59,7 +59,9 @@ namespace :cucumber do
       feature = File.read(feature_file)
       lines = feature.split("\n", -1)
       ntwslines = lines.map { |line| line =~ /\s+\z/ ? $` : line }
-      feature_no_tws = ntwslines.join("\n")
+      ntwslines.pop while ntwslines.last.empty?
+
+      feature_no_tws = ntwslines.join("\n") + "\n"
 
       if feature != feature_no_tws
         STDERR.puts "removing trailing whitespace: #{feature_file}"
