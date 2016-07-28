@@ -34,5 +34,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency 'minitest-reporters'
   spec.add_development_dependency 'yard'
   spec.add_development_dependency 'simplecov'
-  spec.add_development_dependency 'activesupport'
+  spec.add_development_dependency 'actionpack'
 end
