@@ -7,3 +7,4 @@ gem 'wwtd'
 
 gem 'rack', '~> 1.0'
 gem 'activesupport', '~> 4.0'
+gem 'json', git: 'https://github.com/flori/json.git', tag: 'v1.8.3'
