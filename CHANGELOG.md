@@ -1,3 +1,11 @@
+# v0.15.0
+- fix check_required_params for ActionController::Params (really this time?)
+- Dir.glob_escape / Pathname#glob_escape
+- Kernel#ycomb - the y combinator
+- sinatra helper #check_params_and_object_consistent
+- fix sinatra #format_response with 204 no content
+- improve testing with up-to-date ruby (2.3.1), rack (2), actionpack (5), as well as older ones
+
 # v0.14.1
 - task cucumber:trailing_whitespace to clean trailing whitespace from cucumber features #54
 
