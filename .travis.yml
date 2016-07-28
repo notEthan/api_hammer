@@ -10,10 +10,4 @@ matrix:
   exclude:
     - rvm: 2.0.0
       gemfile: gemfiles/Gemfile_rack_2
-    - rvm: 2.1.10
-      gemfile: gemfiles/Gemfile_rack_2
-    - rvm: 2.3.1
-      gemfile: gemfiles/Gemfile_rack_1
-    - rvm: ruby-head
-      gemfile: gemfiles/Gemfile_rack_1
 script: rake test
