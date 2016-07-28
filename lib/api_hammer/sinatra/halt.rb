@@ -5,7 +5,7 @@ module ApiHammer
     module Halt
       # halt and render the given body 
       def halt(status, body, render_options = {})
-        throw :halt, format_response(status, body, headers)
+        throw :halt, format_response(status, body)
       end
 
       include HaltMethods
