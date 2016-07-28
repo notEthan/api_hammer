@@ -97,13 +97,17 @@ module ApiHammer
     # arguments are in the order of what tends to vary most frequently 
     # rather than rack's way, so headers come last 
     def format_response(status, body_object, headers={})
-      body = case response_media_type
-      when 'application/json'
-        JSON.pretty_generate(body_object)
+      if status == 204
+        body = ''
       else
-        # :nocov:
-        raise NotImplementedError, "unsupported response media type #{response_media_type}"
-        # :nocov:
+        body = case response_media_type
+        when 'application/json'
+          JSON.pretty_generate(body_object)
+        else
+          # :nocov:
+          raise NotImplementedError, "unsupported response media type #{response_media_type}"
+          # :nocov:
+        end
       end
       [status, headers.merge({'Content-Type' => response_media_type}), [body]]
     end
