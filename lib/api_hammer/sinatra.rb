@@ -167,5 +167,25 @@ module ApiHammer
         halt_error(415, errors)
       end
     end
+
+    # for methods where parameters which are required in the path may also be specified in the 
+    # body, this takes the path_params and the body object and ensures that they are consistent 
+    # any place they are specified in the body.
+    def check_params_and_object_consistent(path_params, object)
+      errors = {}
+      path_params.each do |(k, v)|
+        if object.key?(k) && object[k] != v
+          errors[k] = [I18n.t('app.errors.inconsistent_uri_and_entity',
+            :key => k,
+            :uri_value => v,
+            :entity_value => object[k],
+            :default => "Inconsistent data given in the request URI and request entity: %{key} was specified as %{uri_value} in the URI but %{entity_value} in the entity",
+          )]
+        end
+      end
+      if errors.any?
+        halt_error(422, errors)
+      end
+    end
   end
 end
