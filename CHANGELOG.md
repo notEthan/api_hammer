@@ -1,3 +1,6 @@
+# v0.16.0
+- fix dependency on json pure parser, which moved from the json gem to json_pure gem
+
 # v0.15.0
 - fix check_required_params for ActionController::Params (really this time?)
 - Dir.glob_escape / Pathname#glob_escape
