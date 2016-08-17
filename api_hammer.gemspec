@@ -25,6 +25,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'faraday'
   spec.add_dependency 'term-ansicolor'
   spec.add_dependency 'json'
+  spec.add_dependency 'json_pure'
   spec.add_dependency 'addressable'
   spec.add_dependency 'coderay'
   spec.add_dependency 'i18n'

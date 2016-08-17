@@ -7,4 +7,3 @@ gem 'wwtd'
 
 gem 'rack', '~> 2.0'
 gem 'actionpack', '~> 5.0'
-gem 'json', git: 'https://github.com/flori/json.git', tag: 'v1.8.3'
