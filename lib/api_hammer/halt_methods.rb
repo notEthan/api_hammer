@@ -21,6 +21,13 @@ module ApiHammer
         end
       end
       body = {'errors' => errors}
+      error_categories = []
+      error_categories |= options[:error_categories] if options[:error_categories]
+      error_categories |= [options[:error_category]] if options[:error_category]
+      if errors.respond_to?(:categories)
+        error_categories = errors.categories.values.inject(error_categories, &:|)
+      end
+      body['error_categories'] = error_categories
       error_message ||= begin
         error_values = errors.values.inject([], &:+)
         if error_values.size <= 1
@@ -53,7 +60,7 @@ module ApiHammer
           :model_name => model_name,
           :attributes => attributes
         )
-        halt_error(options[:status], {model_name => [message]})
+        halt_error(options[:status], {model_name => [message]}, options)
       end
       record
     end
