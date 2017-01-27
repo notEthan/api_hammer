@@ -51,6 +51,8 @@ module ApiHammer
     #
     def find_or_halt(model, find_attrs, options={})
       options = {:status => 404}.merge(options)
+      options[:error_categories] = options_error_categories(options)
+      options[:error_categories] << 'INVALID_PARAMETERS' if options[:error_categories].empty?
       record = model.where(find_attrs).first
       unless record
         attributes = find_attrs.map { |attr, val| "#{attr}: #{val}" }.join(", ")
