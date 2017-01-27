@@ -16,6 +16,15 @@ module ApiHammer
           super + [:category]
         end
       end
+
+      # the presence validator has a default category of MISSING_PARAMETERS, since that is most probably
+      # what a non-present attribute indicates. this can be overridden as usual with the :category option.
+      module PresenceValidatorWithCategory
+        def initialize(options = {})
+          options[:category] ||= 'MISSING_PARAMETERS'
+          super
+        end
+      end
     end
 
     # adds #categories to ActiveModel::Errors
@@ -56,6 +65,8 @@ module ActiveModel
       k.singleton_class.prepend(ApiHammer::ActiveModel::Validations::ClassMethodsWithCategory)
     end
     ClassMethods.prepend(ApiHammer::ActiveModel::Validations::ClassMethodsWithCategory)
+
+    PresenceValidator.prepend(ApiHammer::ActiveModel::Validations::PresenceValidatorWithCategory)
   end
 
   Errors.prepend(ApiHammer::ActiveModel::ErrorsWithCategories)
