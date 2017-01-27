@@ -21,9 +21,7 @@ module ApiHammer
         end
       end
       body = {'errors' => errors}
-      error_categories = []
-      error_categories |= options[:error_categories] if options[:error_categories]
-      error_categories |= [options[:error_category]] if options[:error_category]
+      error_categories = options_error_categories(options)
       if errors.respond_to?(:categories)
         error_categories = errors.categories.values.inject(error_categories, &:|)
       end
@@ -66,6 +64,15 @@ module ApiHammer
       end
       record
     end
+
+    private
+    def options_error_categories(options)
+      error_categories = []
+      error_categories |= options[:error_categories] if options[:error_categories]
+      error_categories |= [options[:error_category]] if options[:error_category]
+      error_categories
+    end
+    public
 
     # halt with status 200 OK, responding with the given body object 
     def halt_ok(body, render_options = {})
