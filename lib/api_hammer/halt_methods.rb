@@ -27,6 +27,8 @@ module ApiHammer
       if errors.respond_to?(:categories)
         error_categories = errors.categories.values.inject(error_categories, &:|)
       end
+      # fallback: use GENERIC_ERROR
+      error_categories |= ['GENERIC_ERROR'] if error_categories.empty?
       body['error_categories'] = error_categories
       error_message ||= begin
         error_values = errors.values.inject([], &:+)
