@@ -19,38 +19,42 @@ module ApiHammer::Rails
   # - `params[:lucky_numbers]` must be present and be an array
   def check_required_params(*checks)
     errors = Hash.new { |h,k| h[k] = [] }
-    check_required_params_helper(checks, params, errors, [])
-    halt_unprocessable_entity(errors) if errors.any?
+    categories = []
+    check_required_params_helper(checks, params, errors, categories, [])
+    halt_unprocessable_entity(errors, error_categories: categories) if errors.any?
   end
 
   private
   # helper 
-  def check_required_params_helper(check, subparams, errors, parents)
+  def check_required_params_helper(check, subparams, errors, categories, parents)
     key = parents.join('#')
-    add_error = proc { |message| errors[key] << message unless errors[key].include?(message) }
+    add_error = proc do |message, category|
+      errors[key] << message unless errors[key].include?(message)
+      categories << category unless categories.include?(category)
+    end
     if subparams.nil?
-      add_error.call(I18n.t(:"errors.required_params.not_provided", :default => "%{key} is required but was not provided", :key => key))
+      add_error.call(I18n.t(:"errors.required_params.not_provided", :default => "%{key} is required but was not provided", :key => key), 'MISSING_PARAMETERS')
     elsif check
       case check
       when Array
-        check.each { |subcheck| check_required_params_helper(subcheck, subparams, errors, parents) }
+        check.each { |subcheck| check_required_params_helper(subcheck, subparams, errors, categories, parents) }
       when Hash
         if subparams.is_a?(Hash) || (Object.const_defined?('ActionController') && subparams.is_a?(::ActionController::Parameters))
           check.each do |key_, subcheck|
-            check_required_params_helper(subcheck, subparams[key_], errors, parents + [key_])
+            check_required_params_helper(subcheck, subparams[key_], errors, categories, parents + [key_])
           end
         else
-          add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key))
+          add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key), 'INVALID_PARAMETERS')
         end
       when Class
         unless subparams.is_a?(check)
-          add_error.call(I18n.t(:"errors.required_params.must_be_type", :default => "%{key} must be a %{type}", :key => key, :type => check.name))
+          add_error.call(I18n.t(:"errors.required_params.must_be_type", :default => "%{key} must be a %{type}", :key => key, :type => check.name), 'INVALID_PARAMETERS')
         end
       else
         if subparams.is_a?(Hash) || (Object.const_defined?('ActionController') && subparams.is_a?(::ActionController::Parameters))
-          check_required_params_helper(nil, subparams[check], errors, parents + [check])
+          check_required_params_helper(nil, subparams[check], errors, categories, parents + [check])
         else
-          add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key))
+          add_error.call(I18n.t(:"errors.required_params.must_be_hash", :default => "%{key} must be a Hash", :key => key), 'INVALID_PARAMETERS')
         end
       end
     end
