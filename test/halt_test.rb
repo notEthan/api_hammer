@@ -27,7 +27,7 @@ describe 'ApiHammer::Rails#halt' do
     end
     it 'halts unprocessable entity' do
       haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.halt_unprocessable_entity({}) }
-      assert_equal({'errors' => {}}, haltex.body)
+      assert_equal({'errors' => {}, 'error_categories' => ['GENERIC_ERROR']}, haltex.body)
       assert_equal(422, haltex.render_options[:status])
     end
   end
@@ -49,7 +49,7 @@ describe 'ApiHammer::Rails#halt' do
         end
       end
       haltex = assert_raises(ApiHammer::Rails::Halt) { FakeController.new.find_or_halt(model, {:id => 'anid'}) }
-      assert_equal({'error_message' => 'Unknown record! id: anid', 'errors' => {'record' => ['Unknown record! id: anid']}}, haltex.body)
+      assert_equal({'error_message' => 'Unknown record! id: anid', 'errors' => {'record' => ['Unknown record! id: anid']}, 'error_categories' => ['INVALID_PARAMETERS']}, haltex.body)
       assert_equal(404, haltex.render_options[:status])
     end
   end
@@ -61,6 +61,6 @@ describe 'ApiHammer::Rails#handle_halt' do
     haltex = (FakeController.new.halt_unprocessable_entity({}) rescue $!)
     controller.handle_halt(haltex)
     assert_equal(422, controller.rendered[:status])
-    assert_equal({'errors' => {}}, controller.rendered[:json])
+    assert_equal({'errors' => {}, 'error_categories' => ['GENERIC_ERROR']}, controller.rendered[:json])
   end
 end
