@@ -61,6 +61,7 @@ module ApiHammer
     # returns the first supported media type. 
     def response_media_type(options={})
       options = {:halt_if_unacceptable => false}.merge(options)
+      env = options[:env] || (respond_to?(:env) ? self.env : raise(ArgumentError, "must pass env"))
       accept = env['HTTP_ACCEPT']
       if accept =~ /\S/
         begin
