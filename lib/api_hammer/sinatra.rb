@@ -85,8 +85,10 @@ module ApiHammer
             supported_media_types.first
           end
         end
-      else
+      elsif supported_media_types && supported_media_types.any?
         supported_media_types.first
+      else
+        raise "No media types are defined. Please set supported_media_types."
       end
     end
 
