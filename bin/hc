@@ -123,7 +123,7 @@ if body && !headers['Content-Type'.downcase]
 end
 
 unless headers.keys.any? { |key| key.downcase == 'user-agent' }
-  headers['User-Agent'] = "ApiHammer #{ApiHammer::VERSION} hc"
+  headers['User-Agent'] = "ApiHammer-hc/#{ApiHammer::VERSION} (#{RUBY_ENGINE} #{RUBY_VERSION}; #{RUBY_PLATFORM})"
 end
 
 # OH LOOK IT'S FINALLY ACTUALLY CONNECTING TO SOMETHING
