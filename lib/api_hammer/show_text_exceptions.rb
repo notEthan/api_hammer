@@ -9,6 +9,19 @@ module ApiHammer
   # those middlewares have a #prefers_plain_text? method which makes them behave like this, but 
   # it's simpler and more reliable to roll our own than monkey-patch those) 
   class ShowTextExceptions
+    # this module blatantly stolen from
+    # https://github.com/rspec/rspec-support/blob/v3.5.0/lib/rspec/support.rb#L121-L130
+    # under MIT license https://github.com/rspec/rspec-support/blob/v3.5.0/LICENSE.md
+    module AllExceptionsExceptOnesWeMustNotRescue
+      # These exceptions are dangerous to rescue as rescuing them
+      # would interfere with things we should not interfere with.
+      AVOID_RESCUING = [NoMemoryError, SignalException, Interrupt, SystemExit]
+
+      def self.===(exception)
+        AVOID_RESCUING.none? { |ar| ar === exception }
+      end
+    end
+
     def initialize(app, options)
       @app=app
       @options = options
@@ -16,7 +29,7 @@ module ApiHammer
     def call(env)
       begin
         @app.call(env)
-      rescue Exception => e
+      rescue AllExceptionsExceptOnesWeMustNotRescue => e
         full_error_message = (["#{e.class}: #{e.message}"] + e.backtrace.map{|l| "  #{l}" }).join("\n")
         if @options[:logger]
           @options[:logger].error(full_error_message)
