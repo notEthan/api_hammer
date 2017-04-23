@@ -1,4 +1,9 @@
 require 'api_hammer/sinatra/halt'
+begin
+  require 'rack/accept'
+rescue LoadError => e
+  raise e.class, e.message + "\nPlease `gem install rack_accept` or add rack_accept to your Gemfile", e.backtrace
+end
 
 module ApiHammer
   module Sinatra
@@ -27,10 +32,6 @@ module ApiHammer
           use middleware, *args, &block
           use Rack::Lint if development? || test?
         end
-
-        # ApiHammer::Sinatra's methods use Rack::Accept so we will go ahead and put this middleware
-        # in the stack
-        klass.use_with_lint Rack::Accept
       end
     end
 
@@ -60,10 +61,11 @@ module ApiHammer
     # returns the first supported media type. 
     def response_media_type(options={})
       options = {:halt_if_unacceptable => false}.merge(options)
+      env = options[:env] || (respond_to?(:env) ? self.env : raise(ArgumentError, "must pass env"))
       accept = env['HTTP_ACCEPT']
       if accept =~ /\S/
         begin
-          best_media_type = env['rack-accept.request'].best_media_type(supported_media_types)
+          best_media_type = Rack::Accept::Request.new(env).best_media_type(supported_media_types)
         rescue RuntimeError => e
           # TODO: this is a crappy way to recognize this exception 
           raise unless e.message =~ /Invalid header value/
@@ -83,8 +85,10 @@ module ApiHammer
             supported_media_types.first
           end
         end
-      else
+      elsif supported_media_types && supported_media_types.any?
         supported_media_types.first
+      else
+        raise "No media types are defined. Please set supported_media_types."
       end
     end
 
