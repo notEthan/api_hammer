@@ -1,3 +1,8 @@
+# v0.17.0
+- fix ApiHammer::ShowTextExceptions middleware to not rescue certain exceptions
+- don't insert or rely on Rack::Accept middleware for sinatra; use Rack::Accept more directly
+- improve hc User-Agent
+
 # v0.16.0
 - fix dependency on json pure parser, which moved from the json gem to json_pure gem
 
