@@ -29,6 +29,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'addressable'
   spec.add_dependency 'coderay'
   spec.add_dependency 'i18n'
+  spec.add_dependency 'lograge'
   spec.add_development_dependency 'rake'
   spec.add_development_dependency 'rack-test'
   spec.add_development_dependency 'minitest'
