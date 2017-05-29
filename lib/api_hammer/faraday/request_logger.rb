@@ -29,6 +29,7 @@ module ApiHammer
 
       def call(request_env)
         began_at = Time.now
+        began_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
 
         log_tags = Thread.current[:activesupport_tagged_logging_tags]
         saved_log_tags = log_tags.dup if log_tags && log_tags.any?
@@ -36,7 +37,7 @@ module ApiHammer
         request_body = request_env[:body].dup if request_env[:body]
 
         @app.call(request_env).on_complete do |response_env|
-          now = Time.now
+          now_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
           status = response_env[:status]
 
           if log_bodies(status)
@@ -72,7 +73,7 @@ module ApiHammer
             }.reject{|k,v| v.nil? },
             'processing' => {
               'began_at' => began_at.utc.to_f,
-              'duration' => now - began_at,
+              'duration' => (now_ns - began_ns) * 1e-9,
               'activesupport_tagged_logging_tags' => log_tags,
             }.reject{|k,v| v.nil? },
           }

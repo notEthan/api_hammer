@@ -55,6 +55,7 @@ module ApiHammer
 
     def call(env)
       began_at = Time.now
+      began_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
 
       # this is closed after the app is called, so read it before 
       env["rack.input"].rewind
@@ -76,13 +77,13 @@ module ApiHammer
       status, response_headers, response_body = @app.call(env)
       response_headers = ::Rack::Utils::HeaderHash.new(response_headers)
       body_proxy = ::Rack::BodyProxy.new(response_body) do
-        log(env, request_uri, request_body, status, response_headers, response_body, began_at, log_tags)
+        log(env, request_uri, request_body, status, response_headers, response_body, began_at, began_ns, log_tags)
       end
       [status, response_headers, body_proxy]
     end
 
-    def log(env, request_uri, request_body, status, response_headers, response_body, began_at, log_tags)
-      now = Time.now
+    def log(env, request_uri, request_body, status, response_headers, response_body, began_at, began_ns, log_tags)
+      now_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
 
       request = Rack::Request.new(env)
       response = Rack::Response.new('', status, response_headers)
@@ -121,7 +122,7 @@ module ApiHammer
         }.reject { |k,v| v.nil? },
         'processing' => {
           'began_at' => began_at.utc.to_f,
-          'duration' => now - began_at,
+          'duration' => (now_ns - began_ns) * 1e-9,
           'activesupport_tagged_logging_tags' => log_tags,
         }.merge(env['request_logger.info'] || {}).merge(Thread.current['request_logger.info'] || {}).reject { |k,v| v.nil? },
       }
