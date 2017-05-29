@@ -129,7 +129,7 @@ module ApiHammer
     def alter_body_by_content_type(body, content_type)
       return body unless body.is_a?(String)
       content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
-      if content_type_attrs.text?
+      if @options[:text].nil? ? content_type_attrs.text? : @options[:text]
         if pretty?
           case content_type_attrs.media_type
           when 'application/json'
