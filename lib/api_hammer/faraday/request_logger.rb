@@ -79,8 +79,8 @@ module ApiHammer
 
           json_data = JSON.generate(data)
           dolog = proc do
-            now_s = now.strftime('%Y-%m-%d %H:%M:%S %Z')
-            @logger.info "#{bold(intense_magenta('>'))} #{status_s(status)} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(now_s)}"
+            began_s = began_at.strftime('%Y-%m-%d %H:%M:%S %Z')
+            @logger.info "#{bold(intense_magenta('>'))} #{status_s(status)} : #{bold(intense_magenta(request_env[:method].to_s.upcase))} #{intense_magenta(request_env[:url].normalize.to_s)} @ #{intense_magenta(began_s)}"
             @logger.info json_data
           end
 
