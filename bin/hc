@@ -26,6 +26,7 @@ $options = {
 }
 
 $oauth = {}
+$basicauth = {}
 
 opt_parser = OptionParser.new do |opts|
   opts.banner = "Usage: #{$0} [options] <verb> <url> [body]"
@@ -66,6 +67,12 @@ opt_parser = OptionParser.new do |opts|
   opts.on("--oauth-signature-method SIGNATURE_METHOD", "OAuth 1.0 signature method - defaults to HMAC-SHA1") do |signature_method|
     $oauth[:signature_method] = signature_method
   end
+  opts.on("--basic-user USER", "basic auth user") do |user|
+    $basicauth[:user] = user
+  end
+  opts.on("--basic-password PASSWORD", "basic auth password") do |password|
+    $basicauth[:password] = password
+  end
 
   opts.on("--no-ssl-verify", "Disables SSL verification - use cautiously!") do
     $options[:no_ssl_verify] = true
@@ -94,6 +101,9 @@ connection = Faraday.new(faraday_options) do |builder|
     require 'oauthenticator'
     OAuthenticator::FaradaySigner
     builder.use OAuthenticator::FaradaySigner, $oauth
+  end
+  if $basicauth.any?
+    builder.basic_auth($basicauth[:user], $basicauth[:password])
   end
   builder.use($options[:verbose] ? ApiHammer::FaradayCurlVOutputter : ApiHammer::FaradayOutputter, $options)
   builder.adapter Faraday.default_adapter
