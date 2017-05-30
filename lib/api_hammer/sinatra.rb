@@ -13,7 +13,7 @@ module ApiHammer
       end
     end
 
-    unless @sinatra_included_defined
+    unless instance_variable_defined?(:@sinatra_included_defined)
       @sinatra_included_defined = true
       (@on_included ||= Set.new) << proc do |klass|
         # set up self.supported_media_types

@@ -23,6 +23,7 @@ $options = {
   :pretty => nil,
   :no_ssl_verify => false,
   :headers => {},
+  :text => nil,
 }
 
 $oauth = {}
@@ -33,6 +34,9 @@ opt_parser = OptionParser.new do |opts|
 
   opts.on("-v", "--[no-]verbose", "Run verbosely - output is like curl -v (this is the default)") do |v|
     $options[:verbose] = v
+  end
+  opts.on("--[no-]text", "consider the response body to be text (default relies on Content-Type)") do |v|
+    $options[:text] = v
   end
   opts.on("-q", "Run quietly - only outputs the response body (same as --no-verbose)") do |v|
     $options[:verbose] = !v

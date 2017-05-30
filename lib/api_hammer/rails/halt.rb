@@ -19,7 +19,7 @@ module ApiHammer::Rails
     attr_reader :body, :render_options
   end
 
-  unless @rails_halt_included_defined
+  unless instance_variable_defined?(:@rails_halt_included_defined)
     @rails_halt_included_defined = true
     (@on_included ||= Set.new) << proc do |controller_class|
       controller_class.send(:rescue_from, ApiHammer::Rails::Halt, :with => :handle_halt)
