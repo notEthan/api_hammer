@@ -1,3 +1,9 @@
+# v0.18.0
+- add option to hc for basic auth
+- add option to hc to make it consider the body as text
+- faraday logger compatibility with old faraday 0.8
+- fix ruby warnings
+
 # v0.17.0
 - fix ApiHammer::ShowTextExceptions middleware to not rescue certain exceptions
 - don't insert or rely on Rack::Accept middleware for sinatra; use Rack::Accept more directly
