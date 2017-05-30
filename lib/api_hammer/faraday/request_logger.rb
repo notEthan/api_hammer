@@ -37,12 +37,12 @@ module ApiHammer
 
         @app.call(request_env).on_complete do |response_env|
           now = Time.now
-          status = response_env.status
+          status = response_env[:status]
 
           if log_bodies(status)
             bodies = [
-              ['request', request_body, request_env.request_headers],
-              ['response', response_env.body, response_env.response_headers]
+              ['request', request_body, request_env[:request_headers]],
+              ['response', response_env[:body], response_env[:response_headers]]
             ].map do |(role, body_s, headers)|
               body = Body.new(body_s, headers['Content-Type'])
               if body.content_type_attrs.text?
@@ -62,12 +62,12 @@ module ApiHammer
             'request' => {
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,
-              'headers' => request_env.request_headers,
+              'headers' => request_env[:request_headers],
               'body' => bodies['request'],
             }.reject{|k,v| v.nil? },
             'response' => {
               'status' => status.to_s,
-              'headers' => response_env.response_headers,
+              'headers' => response_env[:response_headers],
               'body' => bodies['response'],
             }.reject{|k,v| v.nil? },
             'processing' => {
