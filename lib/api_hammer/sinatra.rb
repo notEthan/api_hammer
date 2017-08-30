@@ -46,8 +46,11 @@ module ApiHammer
 
     include ApiHammer::Sinatra::Halt
 
+    # supported_media_types may be defined for the instance (applying to one request) or on the class
+    # (applying to the whole sinatra app)
+    attr_writer :supported_media_types
     def supported_media_types
-      self.class.supported_media_types
+      instance_variable_defined?(:@supported_media_types) ? @supported_media_types : self.class.supported_media_types
     end
 
     # finds the best match (highest q) for those supported_media_types indicated as acceptable by the Accept header. 
@@ -62,6 +65,7 @@ module ApiHammer
     def response_media_type(options={})
       options = {:halt_if_unacceptable => false}.merge(options)
       env = options[:env] || (respond_to?(:env) ? self.env : raise(ArgumentError, "must pass env"))
+      supported_media_types = options[:supported_media_types] || self.supported_media_types
       accept = env['HTTP_ACCEPT']
       if accept =~ /\S/
         begin
