@@ -96,8 +96,8 @@ module ApiHammer
       end
     end
 
-    def check_accept
-      response_media_type(:halt_if_unacceptable => true)
+    def check_accept(options = {})
+      response_media_type(options.merge(:halt_if_unacceptable => true))
     end
 
     # returns a rack response with the given object encoded in the appropriate format for the requests. 
