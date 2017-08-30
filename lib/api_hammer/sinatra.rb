@@ -111,6 +111,12 @@ module ApiHammer
         body = case response_media_type
         when 'application/json'
           JSON.pretty_generate(body_object)
+        when 'application/x-www-form-urlencoded'
+          URI.encode_www_form(body_object)
+        when 'application/xml'
+          body_object.to_s
+        when 'text/plain'
+          body_object
         else
           # :nocov:
           raise NotImplementedError, "unsupported response media type #{response_media_type}"
