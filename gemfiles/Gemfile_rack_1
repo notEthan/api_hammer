@@ -2,7 +2,6 @@ source 'https://rubygems.org'
 
 gemspec path: '..'
 
-gem 'byebug'
 gem 'wwtd'
 
 gem 'rack', '~> 1.0'
@@ -11,5 +10,4 @@ gem 'actionpack', '~> 4.0'
 if RUBY_VERSION == '2.0.0'
   gem 'nokogiri', '~> 1.6.8'
   gem 'public_suffix', '~> 2.0'
-  gem 'byebug', '~> 9.0.6'
 end

@@ -4,7 +4,6 @@ require 'bundler'
 Bundler.setup
 
 require 'simplecov'
-require 'byebug'
 
 # NO EXPECTATIONS 
 ENV["MT_NO_EXPECTATIONS"] = ''
