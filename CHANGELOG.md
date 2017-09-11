@@ -1,3 +1,7 @@
+# v0.18.1
+- improve supported media types for sinatra
+- report to Rollbar on 4xx if Rollbar available
+
 # v0.18.0
 - add option to hc for basic auth
 - add option to hc to make it consider the body as text
