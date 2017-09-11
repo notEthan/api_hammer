@@ -46,8 +46,11 @@ module ApiHammer
 
     include ApiHammer::Sinatra::Halt
 
+    # supported_media_types may be defined for the instance (applying to one request) or on the class
+    # (applying to the whole sinatra app)
+    attr_writer :supported_media_types
     def supported_media_types
-      self.class.supported_media_types
+      instance_variable_defined?(:@supported_media_types) ? @supported_media_types : self.class.supported_media_types
     end
 
     # finds the best match (highest q) for those supported_media_types indicated as acceptable by the Accept header. 
@@ -62,6 +65,7 @@ module ApiHammer
     def response_media_type(options={})
       options = {:halt_if_unacceptable => false}.merge(options)
       env = options[:env] || (respond_to?(:env) ? self.env : raise(ArgumentError, "must pass env"))
+      supported_media_types = options[:supported_media_types] || self.supported_media_types
       accept = env['HTTP_ACCEPT']
       if accept =~ /\S/
         begin
@@ -92,8 +96,8 @@ module ApiHammer
       end
     end
 
-    def check_accept
-      response_media_type(:halt_if_unacceptable => true)
+    def check_accept(options = {})
+      response_media_type(options.merge(:halt_if_unacceptable => true))
     end
 
     # returns a rack response with the given object encoded in the appropriate format for the requests. 
@@ -107,6 +111,12 @@ module ApiHammer
         body = case response_media_type
         when 'application/json'
           JSON.pretty_generate(body_object)
+        when 'application/x-www-form-urlencoded'
+          URI.encode_www_form(body_object)
+        when 'application/xml'
+          body_object.to_s
+        when 'text/plain'
+          body_object
         else
           # :nocov:
           raise NotImplementedError, "unsupported response media type #{response_media_type}"

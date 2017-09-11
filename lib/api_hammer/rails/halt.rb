@@ -3,7 +3,7 @@ require 'api_hammer/halt_methods'
 # the contents of this file are to let you halt a controller in its processing without having to have a 
 # return in the actual action. this lets helper methods which do things like parameter validation halt.
 #
-# it is desgined to function similarly to Sinatra's handling of throw(:halt), but is based around exceptions 
+# it is designed to function similarly to Sinatra's handling of throw(:halt), but is based around exceptions 
 # because rails doesn't catch anything, just rescues. 
 
 module ApiHammer::Rails
