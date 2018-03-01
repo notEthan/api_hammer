@@ -31,7 +31,7 @@ module ApiHammer
         end
       end
       body['error_message'] = error_message if error_message
-      if Object.const_defined?(:Rollbar) and status != 404
+      if Object.const_defined?(:Rollbar) and status != 404 and Object.const_defined?(:DEBUG_4XX) and DEBUG_4XX['enabled']
         Rollbar.debug "Service halted with status #{status}", status: status, body: body, halt_options: halt_options
       end
       halt(status, body, halt_options)
