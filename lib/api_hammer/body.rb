@@ -86,7 +86,7 @@ module ApiHammer
           # if updating by content-type didn't do it, try UTF8 since JSON wants that - but only 
           # if it seems to be valid utf8. 
           # don't try utf8 if the response content-type indicated something else. 
-          try_utf8 = !(content_type_attrs && content_type_attrs.parsed? && content_type_attrs['charset'].any?)
+          try_utf8 = !(content_type_attrs && content_type_attrs.parsed? && content_type_attrs['charset'].any? { |cs| !['utf8', ''].include?(cs.downcase) })
           if try_utf8 && body.dup.force_encoding('UTF-8').valid_encoding?
             body.force_encoding('UTF-8')
           else
