@@ -1,3 +1,7 @@
+# v0.18.2
+- bugfix utf8 http body handling
+- report to Rollbar on 4xx if Rollbar available and DEBUG_4XX indicates so
+
 # v0.18.1
 - improve supported media types for sinatra
 - report to Rollbar on 4xx if Rollbar available
