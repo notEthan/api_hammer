@@ -102,6 +102,7 @@ module ApiHammer
 
       data = {
         'request_role' => 'server',
+        'bound' => 'inbound',
         'request' => {
           'method' => request.request_method,
           'uri' => request_uri.normalize.to_s,

@@ -59,6 +59,7 @@ module ApiHammer
 
           data = {
             'request_role' => 'client',
+            'bound' => 'outbound',
             'request' => {
               'method' => request_env[:method],
               'uri' => request_env[:url].normalize.to_s,

@@ -24,8 +24,8 @@ class LogStash::Filters::ApiHammerRequest < LogStash::Filters::Base
       parsed_message = JSON.parse(event[@source])
       if @consume
         # replace the source with a brief human-readable message
-        role = parsed_message['request_role']
-        dir = role == 'server' ? '<' : role == 'client' ? '>' : '*'
+        bound = parsed_message['bound']
+        dir = role == 'inbound' ? '<' : role == 'outbound' ? '>' : '*'
         status = parsed_message['response'] && parsed_message['response']['status']
         request_method = parsed_message['request'] && parsed_message['request']['method']
         request_uri = parsed_message['request'] && parsed_message['request']['uri']
