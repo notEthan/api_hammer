@@ -1,7 +1,7 @@
 rvm:
-  - 2.0.0
-  - 2.2.5
-  - 2.3.1
+  - 2.2.10
+  - 2.3.8
+  - 2.6.1
 gemfile:
   - gemfiles/Gemfile_rack_1
   - gemfiles/Gemfile_rack_2
