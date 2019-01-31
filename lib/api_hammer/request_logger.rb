@@ -61,8 +61,9 @@ module ApiHammer
       request_body = env["rack.input"].read
       env["rack.input"].rewind
 
-      log_tags = Thread.current[:activesupport_tagged_logging_tags]
-      log_tags = log_tags.dup if log_tags && log_tags.any?
+      if @logger && @logger.formatter.respond_to?(:current_tags)
+        log_tags = @logger.formatter.current_tags.dup
+      end
 
       request = Rack::Request.new(env)
       request_uri = Addressable::URI.new(
