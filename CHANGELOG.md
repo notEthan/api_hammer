@@ -1,3 +1,9 @@
+# v0.19.0
+- drop support for ruby < 2.2
+- count time monotonically
+- bugfix getting current logger tags
+- prepare for ur
+
 # v0.18.2
 - bugfix utf8 http body handling
 - report to Rollbar on 4xx if Rollbar available and DEBUG_4XX indicates so
