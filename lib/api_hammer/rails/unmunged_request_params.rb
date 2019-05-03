@@ -1,12 +1,13 @@
 module ApiHammer::Rails
-  # request parameters (not query parameters) without the nil/empty array munging that rails does 
+  MUTEX_FOR_THREAD = Mutex.new
+  # request parameters (not query parameters) without the nil/empty array munging that rails does
   def unmunged_request_params
-    # Thread.exclusive is not optimal but we need to ensure that any other params parsing occurring in other 
+    # Use Mutex#synchronize to ensure that any other params parsing occurring in other
     # threads is not affected by disabling munging
     #
     # TODO when we are on a rails which has ActionDispatch::Request::Utils.perform_deep_munge, use that instead
     # of clobbering methods
-    @unmunged_params ||= Thread.exclusive do
+    @unmunged_params ||= MUTEX_FOR_THREAD.synchronize do
       if ActionDispatch::Request.const_defined?(:Utils) && ActionDispatch::Request::Utils.respond_to?(:deep_munge)
         # rails 4
         deep_munge_owner = (class << ActionDispatch::Request::Utils; self; end)
