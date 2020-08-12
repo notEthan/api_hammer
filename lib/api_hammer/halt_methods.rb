@@ -21,6 +21,13 @@ module ApiHammer
         end
       end
       body = {'errors' => errors}
+      error_categories = options_error_categories(options)
+      if errors.respond_to?(:categories)
+        error_categories = errors.categories.values.inject(error_categories, &:|)
+      end
+      # fallback: use GENERIC_ERROR
+      error_categories |= ['GENERIC_ERROR'] if error_categories.empty?
+      body['error_categories'] = error_categories
       error_message ||= begin
         error_values = errors.values.inject([], &:+)
         if error_values.size <= 1
@@ -47,6 +54,8 @@ module ApiHammer
     #
     def find_or_halt(model, find_attrs, options={})
       options = {:status => 404}.merge(options)
+      options[:error_categories] = options_error_categories(options)
+      options[:error_categories] << 'INVALID_PARAMETERS' if options[:error_categories].empty?
       record = model.where(find_attrs).first
       unless record
         attributes = find_attrs.map { |attr, val| "#{attr}: #{val}" }.join(", ")
@@ -56,10 +65,19 @@ module ApiHammer
           :model_name => model_name,
           :attributes => attributes
         )
-        halt_error(options[:status], {model_name => [message]})
+        halt_error(options[:status], {model_name => [message]}, options)
       end
       record
     end
+
+    private
+    def options_error_categories(options)
+      error_categories = []
+      error_categories |= options[:error_categories] if options[:error_categories]
+      error_categories |= [options[:error_category]] if options[:error_category]
+      error_categories
+    end
+    public
 
     # halt with status 200 OK, responding with the given body object 
     def halt_ok(body, render_options = {})
