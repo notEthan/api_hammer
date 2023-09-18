@@ -82,7 +82,7 @@ module ApiHammer
         end
         begin
           JSON.generate([body])
-        rescue Encoding::UndefinedConversionError
+        rescue Encoding::UndefinedConversionError, JSON::GeneratorError
           # if updating by content-type didn't do it, try UTF8 since JSON wants that - but only 
           # if it seems to be valid utf8. 
           # don't try utf8 if the response content-type indicated something else. 
