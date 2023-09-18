@@ -3,11 +3,11 @@ rvm:
   - 2.3.8
   - 2.6.1
 gemfile:
-  - gemfiles/Gemfile_rack_1
-  - gemfiles/Gemfile_rack_2
+  - Gemfile_rack_1.rb
+  - Gemfile_rack_2.rb
 matrix:
   fast_finish: true
   exclude:
     - rvm: 2.0.0
-      gemfile: gemfiles/Gemfile_rack_2
+      gemfile: Gemfile_rack_2.rb
 script: rake test
