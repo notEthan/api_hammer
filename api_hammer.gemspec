@@ -29,11 +29,4 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'addressable'
   spec.add_dependency 'coderay'
   spec.add_dependency 'i18n'
-  spec.add_development_dependency 'rake'
-  spec.add_development_dependency 'rack-test'
-  spec.add_development_dependency 'minitest'
-  spec.add_development_dependency 'minitest-reporters'
-  spec.add_development_dependency 'yard'
-  spec.add_development_dependency 'simplecov'
-  spec.add_development_dependency 'actionpack'
 end
