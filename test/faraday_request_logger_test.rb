@@ -12,7 +12,7 @@ describe ApiHammer::RequestLogger do
   it 'logs' do
     conn = Faraday.new do |f|
       f.use ApiHammer::Faraday::RequestLogger, logger
-      f.use Faraday::Adapter::Rack, proc { |env| [200, {}, []] }
+      f.adapter Faraday::Adapter::Rack, proc { |env| [200, {}, []] }
     end
     conn.get '/'
     assert_match(/200/, logio.string)
@@ -27,7 +27,7 @@ describe ApiHammer::RequestLogger do
     it "colors by #{status} status" do
       conn = Faraday.new do |f|
         f.use ApiHammer::Faraday::RequestLogger, logger
-        f.use Faraday::Adapter::Rack, proc { |env| [status, {}, []] }
+        f.adapter Faraday::Adapter::Rack, proc { |env| [status, {}, []] }
       end
       conn.get '/'
       assert(logio.string.include?(Term::ANSIColor.send(color, status.to_s)))
@@ -37,7 +37,7 @@ describe ApiHammer::RequestLogger do
   it 'registers by name' do
     conn = Faraday.new do |f|
       f.request :api_hammer_request_logger, logger
-      f.use Faraday::Adapter::Rack, proc { |env| [200, {}, []] }
+      f.adapter Faraday::Adapter::Rack, proc { |env| [200, {}, []] }
     end
     conn.get '/'
     assert_match(/200/, logio.string)
@@ -50,7 +50,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert_match(/Jalapeños/, logio.string)
@@ -62,7 +62,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert_match(/Jalapeños/, logio.string)
@@ -74,7 +74,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert_match(/Jalapeños/, logio.string)
@@ -86,7 +86,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert_match('[120,120,195]', logio.string)
@@ -98,7 +98,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert_match('[120,120,195]', logio.string)
@@ -118,7 +118,7 @@ describe ApiHammer::RequestLogger do
         end
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert(logio.string.include?('data go here') == istext)
@@ -133,7 +133,7 @@ describe ApiHammer::RequestLogger do
       end
       conn = Faraday.new do |f|
         f.request :api_hammer_request_logger, logger, :log_bodies => false
-        f.use Faraday::Adapter::Rack, app
+        f.adapter Faraday::Adapter::Rack, app
       end
       conn.get '/'
       assert(!logio.string.include?('data go here'))
@@ -146,7 +146,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"pin": "foobar", "bar": "baz"}']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"{\"pin\": \"[FILTERED]\", \"bar\": \"baz\"}"))
@@ -155,7 +155,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['{"object": {"pin": "foobar"}, "bar": "baz"}']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"{\"object\": {\"pin\": \"[FILTERED]\"}, \"bar\": \"baz\"}"))
@@ -164,7 +164,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/json'}, ['[{"object": [{"pin": ["foobar"]}], "bar": "baz"}]']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}], \"bar\": \"baz\"}]"))
@@ -176,7 +176,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {}, []] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.post '/', '[{"object": [{"pin": ["foobar"]}], "bar": "baz"}]', {'Content-Type' => 'application/json'}
         assert_includes(logio.string, %q("body":"[{\"object\": [{\"pin\": \"[FILTERED]\"}], \"bar\": \"baz\"}]"))
@@ -188,7 +188,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['pin=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"pin=[FILTERED]&bar=baz"))
@@ -197,7 +197,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[pin]=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"object[pin]=[FILTERED]&bar=baz"))
@@ -206,7 +206,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {'Content-Type' => 'application/x-www-form-urlencoded'}, ['object[][pin][]=foobar&bar=baz']] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.get '/'
         assert_includes(logio.string, %q("body":"object[][pin][]=[FILTERED]&bar=baz"))
@@ -218,7 +218,7 @@ describe ApiHammer::RequestLogger do
         app = proc { |env| [200, {}, []] }
         conn = Faraday.new do |f|
           f.request :api_hammer_request_logger, logger, :filter_keys => 'pin'
-          f.use Faraday::Adapter::Rack, app
+          f.adapter Faraday::Adapter::Rack, app
         end
         conn.post '/', 'object[pin]=foobar&bar=baz', {'Content-Type' => 'application/x-www-form-urlencoded'}
         assert_includes(logio.string, %q(object[pin]=[FILTERED]&bar=baz))
