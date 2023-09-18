@@ -1,3 +1,5 @@
+require 'strscan'
+
 module ApiHammer
   # parses attributes out of content type header
   class ContentTypeAttrs
