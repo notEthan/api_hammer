@@ -48,7 +48,7 @@ require 'action_controller/metal/strong_parameters'
 
       it 'is has the wrong type for person with hash check' do
         c = controller_with_params(:person => [])
-        err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(:person => {:id => Fixnum}) }
+        err = assert_raises(ApiHammer::Rails::Halt) { c.check_required_params(:person => {:id => Integer}) }
         assert_equal({'error_message' => 'person must be a Hash', 'errors' => {'person' => ['person must be a Hash']}}, err.body)
       end
 
