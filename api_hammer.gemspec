@@ -13,10 +13,19 @@ Gem::Specification.new do |spec|
     'is one large tool.'
   spec.homepage      = 'https://github.com/notEthan/api_hammer'
   spec.license       = 'MIT'
-
-  spec.files         = `git ls-files -z`.split("\x0") - ['.gitignore']
-  spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
-  spec.test_files    = `git ls-files -z test`.split("\x0")
+  spec.files         = [
+    *%w(
+      .yardopts
+      CHANGELOG.md
+      LICENSE.txt
+      README.md
+      api_hammer.gemspec
+      bin/hc
+    ),
+    *Dir['lib/**/*'],
+  ].reject { |f| File.lstat(f).ftype == 'directory' }
+  spec.bindir        = 'bin'
+  spec.executables   = ['hc']
   spec.require_paths = ['lib']
 
   spec.add_dependency 'rack'
