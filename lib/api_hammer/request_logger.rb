@@ -53,6 +53,8 @@ module ApiHammer
       super(app, logger)
     end
 
+    Headers = ::Rack.const_defined?(:Headers) ? ::Rack::Headers : ::Rack::Utils::HeaderHash
+
     def call(env)
       began_at = Time.now
       began_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
@@ -78,7 +80,7 @@ module ApiHammer
       )
 
       status, response_headers, response_body = @app.call(env)
-      response_headers = ::Rack::Utils::HeaderHash.new(response_headers)
+      response_headers = Headers.new.merge(response_headers)
       body_proxy = ::Rack::BodyProxy.new(response_body) do
         log(env, request_uri, request_body, status, response_headers, response_body, began_at, began_ns, log_tags)
       end
