@@ -12,7 +12,9 @@ module ApiHammer
     # parses the body to an object
     def object
       instance_variable_defined?(:@object) ? @object : @object = begin
-        if media_type == 'application/json'
+        if body.nil?
+          nil
+        elsif media_type == 'application/json'
           JSON.parse(body) rescue nil
         elsif media_type == 'application/x-www-form-urlencoded'
           CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
@@ -22,7 +24,9 @@ module ApiHammer
 
     def filtered(options)
       @filtered ||= Body.new(begin
-        if media_type == 'application/json'
+        if body.nil?
+          nil
+        elsif media_type == 'application/json'
           begin
             ApiHammer::Filtration::Json.new(body, options).filter
           rescue JSON::ParserError

@@ -58,9 +58,11 @@ module ApiHammer
       began_ns = Process.clock_gettime(Process::CLOCK_MONOTONIC, :nanosecond)
 
       # this is closed after the app is called, so read it before 
-      env["rack.input"].rewind
-      request_body = env["rack.input"].read
-      env["rack.input"].rewind
+      if env["rack.input"]
+        env["rack.input"].rewind
+        request_body = env["rack.input"].read
+        env["rack.input"].rewind
+      end
 
       if @logger && @logger.formatter.respond_to?(:current_tags)
         log_tags = @logger.formatter.current_tags.dup
@@ -135,7 +137,9 @@ module ApiHammer
           parsed_body = ApiHammer::Body.new(body, content_type)
           content_type_attrs = ApiHammer::ContentTypeAttrs.new(content_type)
           if content_type_attrs.text?
-            if (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
+            if body.nil?
+              data[role]['body'] = body
+            elsif (400..599).include?(status.to_i) || body.size < LARGE_BODY_SIZE
               # log bodies if they are not large, or if there was an error (either client or server) 
               data[role]['body'] = parsed_body.filtered(@options.reject { |k,v| ![:filter_keys].include?(k) }).jsonifiable.body
             else
