@@ -6,7 +6,3 @@ Rake::TestTask.new do |t|
 end
 require 'wwtd/tasks'
 task 'default' => 'wwtd'
-
-require 'yard'
-YARD::Rake::YardocTask.new do |t|
-end
