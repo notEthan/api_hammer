@@ -4,6 +4,7 @@ proc { |p| $:.unshift(p) unless $:.any? { |lp| File.expand_path(lp) == p } }.cal
 require 'helper'
 require 'logger'
 require 'stringio'
+require 'faraday/rack' unless Faraday::Adapter.constants.include?(:Rack)
 
 describe ApiHammer::RequestLogger do
   let(:logio) { StringIO.new }
