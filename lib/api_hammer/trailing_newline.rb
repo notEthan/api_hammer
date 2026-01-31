@@ -29,8 +29,10 @@ module ApiHammer
       _, content_type = headers.detect { |(k,_)| k =~ /\Acontent.type\z/i }
       if env['REQUEST_METHOD'].downcase != 'head' && ApiHammer::ContentTypeAttrs.new(content_type).text?
         body = TNLBodyProxy.new(body){}
-        if headers["Content-Length"]
-          headers["Content-Length"] = body.map(&:bytesize).inject(0, &:+).to_s
+        headers.each_key do |k|
+          if "content-length".casecmp?(k)
+            headers[k] = body.map(&:bytesize).inject(0, &:+).to_s
+          end
         end
       end
       [status, headers, body]
