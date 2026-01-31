@@ -15,7 +15,7 @@ module ApiHammer
 
       def filter
         reset
-        obj = ''
+        obj = +''
         while !eos? && scan_result(obj, IGNORE)
         end
         if eos?
@@ -57,7 +57,7 @@ module ApiHammer
       end
 
       def filter_array
-        result = ''
+        result = +''
         delim = false
         until eos?
           if (value = filter_value) != UNPARSED
@@ -86,7 +86,7 @@ module ApiHammer
       FILTERED_JSON = JSON.generate("[FILTERED]", :quirks_mode => true)
 
       def filter_object
-        result = ''
+        result = +''
         delim = false
         until eos?
           if (string = filter_string) != UNPARSED
