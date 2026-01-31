@@ -18,3 +18,4 @@ end
 # mutex_m needed by activesupport (remove when updated)
 gem 'mutex_m'
 gem 'ostruct'
+gem 'json', '< 2.7' # json/pure removed at 2.8. some jruby incompatibility at 2.7.
