@@ -17,7 +17,9 @@ module ApiHammer
         elsif media_type == 'application/json'
           JSON.parse(body) rescue nil
         elsif media_type == 'application/x-www-form-urlencoded'
-          CGI.parse(body).map { |k, vs| {k => vs.last} }.inject({}, &:update)
+          Addressable::URI.form_unencode(body).group_by(&:first).transform_values do |kvs|
+            kvs.map(&:last).inject(nil) { |c, v| c ? v ? "#{c},#{v}" : c : v }
+          end
         end
       end
     end
