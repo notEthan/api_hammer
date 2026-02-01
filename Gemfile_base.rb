@@ -17,3 +17,4 @@ end
 
 # mutex_m needed by activesupport (remove when updated)
 gem 'mutex_m'
+gem 'ostruct'
